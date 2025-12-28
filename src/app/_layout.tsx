@@ -1,7 +1,16 @@
+import { ThemeProvider } from '@/theme';
+import { useTheme } from '@/theme/hooks/useTheme';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavigationThemeProvider,
+} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { Stack } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
+import { useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 Sentry.init({
   dsn: 'https://ee982592402fa1ed01fc7c47ada8bdc0@o4506185854156800.ingest.us.sentry.io/4509555266486272',
@@ -28,8 +37,41 @@ Sentry.init({
 const expo = SQLite.openDatabaseSync('db.db');
 const db = drizzle(expo);
 
+function RootLayoutInner() {
+  const { isDark, theme } = useTheme();
+
+  // Create navigation theme based on our theme
+  const navigationTheme: ReactNavigation.Theme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: theme.colors.primary,
+      background: theme.colors.background,
+      card: theme.colors.surface,
+      text: theme.colors.text,
+      border: theme.colors.border,
+      notification: theme.colors.error,
+    },
+  };
+
+  return (
+    <NavigationThemeProvider value={navigationTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </NavigationThemeProvider>
+  );
+}
+
 function RootLayout() {
-  return <Stack />;
+  const isSystemInDark = useColorScheme() === 'dark';
+  return (
+    <GestureHandlerRootView>
+      <ThemeProvider systemSchemeIsDark={isSystemInDark}>
+        <RootLayoutInner />
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
 }
 
 export default Sentry.wrap(RootLayout);
