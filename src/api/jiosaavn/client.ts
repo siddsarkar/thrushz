@@ -30,7 +30,7 @@ export class JiosaavnApiClient {
   private fetchFromWebApi<T>(
     type: string,
     token: string,
-    opts?: JiosaavnPaginationParams,
+    opts?: JiosaavnPaginationParams
   ) {
     return this.fetchData<T>({
       __call: 'webapi.get',
@@ -81,7 +81,7 @@ export class JiosaavnApiClient {
     return this.fetchFromWebApi<{ songs: JiosaavnApiSong[] }>(
       'song',
       token,
-      opts,
+      opts
     );
   }
 
@@ -102,7 +102,7 @@ export class JiosaavnApiClient {
   private search<T>(
     call: string,
     query: string,
-    opts?: JiosaavnPaginationParams,
+    opts?: JiosaavnPaginationParams
   ) {
     return this.fetchData<JiosaavnPaginatedResponse<T>>({
       __call: call,
@@ -123,7 +123,7 @@ export class JiosaavnApiClient {
     return this.search<JiosaavnApiPlaylist>(
       'search.getPlaylistResults',
       query,
-      opts,
+      opts
     );
   }
 
@@ -131,7 +131,7 @@ export class JiosaavnApiClient {
     return this.search<JiosaavnApiArtistMini>(
       'search.getArtistResults',
       query,
-      opts,
+      opts
     );
   }
 
@@ -148,10 +148,10 @@ export class JiosaavnApiClient {
 
     const searchParams = new URLSearchParams(params);
     const paramsStr = searchParams.toString();
-    console.log(paramsStr);
+    console.log('[JIOSAAVN]', paramsStr);
 
     return fetch(`${this.baseUrl}/api.php?${paramsStr}`).then((res) =>
-      res.json(),
+      res.json()
     );
   }
 }

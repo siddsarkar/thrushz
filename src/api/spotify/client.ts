@@ -13,28 +13,30 @@ export class SpotifyApiClient {
   private async request<T>(
     endpoint: string,
     params: Record<string, string>,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<T> {
-    return fetch(
-      `${this.baseUrl}${endpoint}?${new URLSearchParams(params).toString()}`,
-      options,
-    ).then((res) => res.json()) as Promise<T>;
+    const searchParams = new URLSearchParams(params);
+    const paramsStr = searchParams.toString();
+    console.log('[SPOTIFY]', paramsStr);
+    return fetch(`${this.baseUrl}${endpoint}?${paramsStr}`, options).then(
+      (res) => res.json()
+    ) as Promise<T>;
   }
 
   async fetchUserPlaylists(
     userId: string,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<SpotifyApiResponse<SpotifyPlaylist>> {
     return this.request<SpotifyApiResponse<SpotifyPlaylist>>(
       `/v1/users/${userId}/playlists`,
       { limit: '50', offset: '0' },
-      options,
+      options
     );
   }
 
   async fetchAllUserPlaylists(
     userId: string,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<SpotifyPlaylist[]> {
     const allPlaylists: SpotifyPlaylist[] = [];
     let offset = 0;
@@ -44,7 +46,7 @@ export class SpotifyApiClient {
       const response = await this.request<SpotifyApiResponse<SpotifyPlaylist>>(
         `/v1/users/${userId}/playlists`,
         { limit: '50', offset: offset.toString() },
-        options,
+        options
       );
 
       allPlaylists.push(...response.items);
@@ -56,12 +58,11 @@ export class SpotifyApiClient {
   }
 
   async fetchPlaylistDetails<
-    T extends readonly (keyof SpotifyPlaylistDetails)[] =
-      readonly (keyof SpotifyPlaylistDetails)[],
+    T extends readonly (keyof SpotifyPlaylistDetails)[] = readonly (keyof SpotifyPlaylistDetails)[]
   >(
     playlistId: string,
     fields?: T,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<SpotifyPlaylistDetailsWithFields<T>> {
     return this.request<SpotifyPlaylistDetailsWithFields<T>>(
       `/v1/playlists/${playlistId}`,
@@ -70,24 +71,24 @@ export class SpotifyApiClient {
         limit: '50',
         offset: '0',
       },
-      options,
+      options
     );
   }
 
   async fetchPlaylistItems(
     playlistId: string,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<SpotifyApiResponse<SpotifyPlaylistTrack>> {
     return this.request<SpotifyApiResponse<SpotifyPlaylistTrack>>(
       `/v1/playlists/${playlistId}/tracks`,
       { limit: '50', offset: '0' },
-      options,
+      options
     );
   }
 
   async fetchAllItemsInPlaylist(
     playlistId: string,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<SpotifyPlaylistTrack[]> {
     const allItems: SpotifyPlaylistTrack[] = [];
     let offset = 0;
@@ -99,7 +100,7 @@ export class SpotifyApiClient {
       >(
         `/v1/playlists/${playlistId}/tracks`,
         { limit: '50', offset: offset.toString() },
-        options,
+        options
       );
 
       allItems.push(...response.items);

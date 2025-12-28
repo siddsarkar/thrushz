@@ -1,3 +1,4 @@
+import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
 import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
 import { PlaybackService } from '@/services/playback/PlaybackService';
 import { ThemeProvider } from '@/theme';
@@ -71,7 +72,8 @@ function RootLayoutInner() {
   return (
     <NavigationThemeProvider value={navigationTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
       </Stack>
     </NavigationThemeProvider>
   );
@@ -82,9 +84,11 @@ function RootLayout() {
 
   return (
     <GestureHandlerRootView>
-      <ThemeProvider systemSchemeIsDark={isSystemInDark}>
-        <RootLayoutInner />
-      </ThemeProvider>
+      <AuthSessionProvider>
+        <ThemeProvider systemSchemeIsDark={isSystemInDark}>
+          <RootLayoutInner />
+        </ThemeProvider>
+      </AuthSessionProvider>
     </GestureHandlerRootView>
   );
 }

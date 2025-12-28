@@ -1,83 +1,196 @@
-import { JiosaavnApiClient } from '@/api/jiosaavn';
-import { JiosaavnApiSong } from '@/api/jiosaavn/models/Song';
-import {
-  createDownloadLinks,
-  createImageLinks,
-} from '@/api/jiosaavn/utils/helpers';
+import { JiosaavnApiClient, JiosaavnApiPlaylistMini } from '@/api/jiosaavn';
+import { SpotifyApiClient, SpotifyPlaylist } from '@/api/spotify';
+import ambientSounds from '@/assets/data/google-ambient-sounds.json';
+import { useSession } from '@/auth/context/AuthSessionProvider';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useThemeColors } from '@/theme/hooks/useTheme';
 import { Image } from 'expo-image';
+import { Link } from 'expo-router';
 import { Suspense, use } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
-import TrackPlayer from 'react-native-track-player';
+import { Pressable, SectionList, Text, View } from 'react-native';
 
-const fetchPlaylistSongs = async (id: string): Promise<JiosaavnApiSong[]> => {
-  const playlist = await new JiosaavnApiClient().getPlaylistDetails(id, {
-    perPage: 100,
+const fetchSpotifyUserPlaylists = async (
+  userId: string,
+  token: string
+): Promise<SpotifyPlaylist[]> => {
+  const playlists = await new SpotifyApiClient().fetchUserPlaylists(userId, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-  return playlist.list;
+  return playlists.items;
 };
 
-const SongDisplay = ({ song }: { song: JiosaavnApiSong }) => {
+const fetchJiosaavnTopPlaylists = async (): Promise<
+  JiosaavnApiPlaylistMini[]
+> => {
+  const playlists = await new JiosaavnApiClient().getLaunchData();
+  return playlists.top_playlists;
+};
+
+const AmbientSoundsPlaylistDisplay = () => {
   const colors = useThemeColors();
-
-  const handlePress = async () => {
-    await TrackPlayer.reset();
-    await TrackPlayer.add({
-      url:
-        createDownloadLinks(song.more_info.encrypted_media_url || '')[0]?.url ||
-        '',
-      title: song.title,
-      artist: song.more_info.artistMap?.primary_artists[0]?.name || '',
-      artwork: createImageLinks(song.image || '')[0]?.url || '',
-      duration: Number(song.more_info.duration || 0),
-      id: song.id,
-    });
-    await TrackPlayer.play();
-  };
-
   return (
-    <Pressable
-      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}
-      onPress={handlePress}
+    <Link
+      href={{
+        pathname: '/playlist/ambient-sounds',
+      }}
+      asChild
     >
-      <Image source={{ uri: song.image }} style={{ width: 100, height: 100 }} />
-      <Text style={{ color: colors.text }}>{song.title}</Text>
-    </Pressable>
+      <Pressable
+        style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}
+      >
+        <Image
+          source={{ uri: ambientSounds[0].artwork }}
+          style={{ width: 100, height: 100 }}
+        />
+        <Text style={{ color: colors.text }}>Ambient Sounds</Text>
+      </Pressable>
+    </Link>
   );
 };
 
-const SongListDisplay = ({
-  songsPromise,
+const SpotifyPlaylistDisplay = ({
+  playlist,
 }: {
-  songsPromise: Promise<JiosaavnApiSong[]>;
+  playlist: SpotifyPlaylist;
 }) => {
-  const songs = use(songsPromise);
+  const colors = useThemeColors();
   return (
-    <FlatList
-      data={songs}
-      renderItem={({ item }: { item: JiosaavnApiSong }) => (
-        <SongDisplay song={item} />
+    <Link
+      href={{
+        pathname: '/playlist/spotify/[id]',
+        params: { id: playlist.id },
+      }}
+      asChild
+    >
+      <Pressable>
+        <Image
+          source={{ uri: playlist.images[0].url }}
+          style={{ width: 100, height: 100 }}
+        />
+        <Text style={{ color: colors.text }}>{playlist.name}</Text>
+      </Pressable>
+    </Link>
+  );
+};
+
+const JiosaavnPlaylistDisplay = ({
+  playlist,
+}: {
+  playlist: JiosaavnApiPlaylistMini;
+}) => {
+  const colors = useThemeColors();
+  return (
+    <Link
+      href={{
+        pathname: '/playlist/jiosaavn/[id]',
+        params: { id: playlist.perma_url.split('/').pop() || '' },
+      }}
+      asChild
+    >
+      <Pressable>
+        <Image
+          source={{ uri: playlist.image }}
+          style={{ width: 100, height: 100 }}
+        />
+        <Text style={{ color: colors.text }}>
+          {playlist.name || playlist.title}
+        </Text>
+      </Pressable>
+    </Link>
+  );
+};
+
+const PlaylistListDisplay = ({
+  jiosaavnTopPlaylistsPromise,
+  spotifyUserPlaylistsPromise,
+}: {
+  jiosaavnTopPlaylistsPromise: Promise<JiosaavnApiPlaylistMini[]>;
+  spotifyUserPlaylistsPromise: Promise<SpotifyPlaylist[]>;
+}) => {
+  const jiosaavnTopPlaylists = use(jiosaavnTopPlaylistsPromise);
+  const spotifyUserPlaylists = use(spotifyUserPlaylistsPromise);
+  const colors = useThemeColors();
+
+  return (
+    <SectionList<{
+      playlist:
+        | JiosaavnApiPlaylistMini
+        | SpotifyPlaylist
+        | typeof ambientSounds;
+      source: 'jiosaavn' | 'spotify' | 'ambient-sounds';
+    }>
+      style={{ flex: 1 }}
+      sections={[
+        {
+          title: 'Jiosaavn Top Playlists',
+          data: jiosaavnTopPlaylists.map((playlist) => ({
+            playlist,
+            source: 'jiosaavn',
+          })),
+        },
+        {
+          title: 'Spotify User Playlists',
+          data: spotifyUserPlaylists.map((playlist) => ({
+            playlist,
+            source: 'spotify',
+          })),
+        },
+        {
+          title: 'Ambient Sounds',
+          data: [{ playlist: ambientSounds, source: 'ambient-sounds' }],
+        },
+      ]}
+      renderItem={({
+        item,
+      }: {
+        item: {
+          playlist:
+            | JiosaavnApiPlaylistMini
+            | SpotifyPlaylist
+            | typeof ambientSounds;
+          source: 'jiosaavn' | 'spotify' | 'ambient-sounds';
+        };
+      }) =>
+        item.source === 'jiosaavn' ? (
+          <JiosaavnPlaylistDisplay
+            playlist={item.playlist as JiosaavnApiPlaylistMini}
+          />
+        ) : item.source === 'spotify' ? (
+          <SpotifyPlaylistDisplay playlist={item.playlist as SpotifyPlaylist} />
+        ) : (
+          <AmbientSoundsPlaylistDisplay />
+        )
+      }
+      renderSectionHeader={({ section: { title } }) => (
+        <View style={{ padding: 10 }}>
+          <Text style={{ color: colors.text }}>{title}</Text>
+        </View>
       )}
     />
   );
 };
 
 export default function HomeScreen() {
-  const songPromise = fetchPlaylistSongs('waNcnezc7nIrZqI-DFN-4Q__');
+  const { user, token } = useSession();
+  const jiosaavnTopPlaylists = fetchJiosaavnTopPlaylists();
+  const spotifyUserPlaylists = fetchSpotifyUserPlaylists(
+    user?.id || '',
+    token || ''
+  );
   const colors = useThemeColors();
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ErrorBoundary
-        fallback={<Text style={{ color: colors.text }}>Error</Text>}
+    <ErrorBoundary fallback={<Text style={{ color: colors.text }}>Error</Text>}>
+      <Suspense
+        fallback={<Text style={{ color: colors.text }}>Loading...</Text>}
       >
-        <Suspense
-          fallback={<Text style={{ color: colors.text }}>Loading...</Text>}
-        >
-          <SongListDisplay songsPromise={songPromise} />
-        </Suspense>
-      </ErrorBoundary>
-    </View>
+        <PlaylistListDisplay
+          jiosaavnTopPlaylistsPromise={jiosaavnTopPlaylists}
+          spotifyUserPlaylistsPromise={spotifyUserPlaylists}
+        />
+      </Suspense>
+    </ErrorBoundary>
   );
 }

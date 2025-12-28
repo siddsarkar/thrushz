@@ -124,7 +124,7 @@ const TabLayout = withModalProvider(() => {
       </View>
 
       <TabList style={{ display: 'none' }}>
-        <TabTrigger name="home" href="/" />
+        <TabTrigger name="(home)" href="/" />
       </TabList>
     </Tabs>
   );
