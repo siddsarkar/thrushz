@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "thrushz",
-    "slug": "thrushz",
+    "name": "Thrushz",
+    "slug": "Thrushz",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
-    "scheme": "thrushz",
+    "scheme": "siddsarkar",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -19,7 +19,8 @@
         "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.siddsarkar.thrushz.dev"
     },
     "web": {
       "output": "static",
@@ -43,11 +44,33 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "expo-music-player",
+          "organization": "appxbeta"
+        }
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "512627da-cf95-4ffb-a82f-3f67879c6313"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/512627da-cf95-4ffb-a82f-3f67879c6313"
     }
   }
 }
