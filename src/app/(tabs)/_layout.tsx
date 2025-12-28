@@ -1,22 +1,25 @@
+import { ActionSheet } from '@/components/player/ActionSheet';
 import { MiniPlayer } from '@/components/player/MiniPlayer';
 import { NowPlayingSheet } from '@/components/player/NowPlayingSheet';
 import { TabButton } from '@/components/ui/TabButton';
 import { withModalProvider } from '@/hoc/withModalProvider';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-import {
+import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet';
 import { TabList, Tabs, TabSlot, TabTrigger } from 'expo-router/ui';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Button, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useActiveTrack } from 'react-native-track-player';
 
 const TabLayout = withModalProvider(() => {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const track = useActiveTrack();
 
   // states
   const [backdropPressBehavior] = useState<'none' | 'close' | 'collapse'>(
@@ -61,9 +64,16 @@ const TabLayout = withModalProvider(() => {
     [backdropPressBehavior]
   );
 
+  // actions bottom sheet
+  const actionsSheetRef = useRef<BottomSheet>(null);
+  const actionsSheetSnapPoints = useMemo(() => ['40%'], []);
+  const handleActionsPress = useCallback(() => {
+    actionsSheetRef.current?.snapToIndex(0);
+  }, [actionsSheetRef]);
+
   return (
     <Tabs>
-      <View style={{ flex: 1, position: 'relative' }}>
+      <View style={{ flex: 1 }}>
         <TabSlot />
         <BottomSheetModal
           ref={bottomSheetRef}
@@ -73,7 +83,7 @@ const TabLayout = withModalProvider(() => {
           backdropComponent={renderBackdrop}
           onDismiss={handleDismiss}
         >
-          <NowPlayingSheet onClosePress={handleClosePress} />
+          <NowPlayingSheet track={track} onClosePress={handleClosePress} />
         </BottomSheetModal>
       </View>
 
@@ -81,16 +91,19 @@ const TabLayout = withModalProvider(() => {
       <View
         style={{
           paddingBottom: insets.bottom,
-          position: 'absolute',
-          bottom: 10,
-          left: 10,
-          right: 10,
-          height: 'auto',
-          borderWidth: 1,
-          borderColor: colors.accent,
         }}
       >
-        <MiniPlayer onPress={handlePresentPress} />
+        <BottomSheet
+          index={-1}
+          ref={actionsSheetRef}
+          enablePanDownToClose={true}
+          snapPoints={actionsSheetSnapPoints}
+        >
+          <ActionSheet />
+        </BottomSheet>
+        <MiniPlayer track={track} onPress={handlePresentPress} />
+        <Button title="Open" onPress={handlePresentPress} />
+        {/* <Button title="Open" onPress={handleActionsPress} /> */}
         <View
           style={{
             flexDirection: 'row',

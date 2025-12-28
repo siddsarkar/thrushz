@@ -1,3 +1,5 @@
+import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
+import { PlaybackService } from '@/services/playback/PlaybackService';
 import { ThemeProvider } from '@/theme';
 import { useTheme } from '@/theme/hooks/useTheme';
 import {
@@ -9,8 +11,11 @@ import * as Sentry from '@sentry/react-native';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { Stack } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
-import { useColorScheme } from 'react-native';
+import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import TrackPlayer from 'react-native-track-player';
+
+TrackPlayer.registerPlaybackService(() => PlaybackService);
 
 Sentry.init({
   dsn: 'https://ee982592402fa1ed01fc7c47ada8bdc0@o4506185854156800.ingest.us.sentry.io/4509555266486272',
@@ -38,6 +43,7 @@ const expo = SQLite.openDatabaseSync('db.db');
 const db = drizzle(expo);
 
 function RootLayoutInner() {
+  const isPlayerReady = useSetupPlayer();
   const { isDark, theme } = useTheme();
 
   // Create navigation theme based on our theme
@@ -54,6 +60,14 @@ function RootLayoutInner() {
     },
   };
 
+  if (!isPlayerReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <NavigationThemeProvider value={navigationTheme}>
       <Stack>
@@ -65,6 +79,7 @@ function RootLayoutInner() {
 
 function RootLayout() {
   const isSystemInDark = useColorScheme() === 'dark';
+
   return (
     <GestureHandlerRootView>
       <ThemeProvider systemSchemeIsDark={isSystemInDark}>

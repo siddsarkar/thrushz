@@ -1,14 +1,11 @@
 import { Image } from 'expo-image';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Track } from 'react-native-track-player';
+import type { Track } from 'react-native-track-player';
 
-export function MiniPlayer({
-  track,
-  onPress,
-}: {
+export const TrackInfo: React.FC<{
   track?: Track;
-  onPress: () => void;
-}) {
+}> = ({ track }) => {
   // @ts-expect-error - track.artwork is not typed
   const imageUri = track?.artwork?.uri || track?.artwork;
 
@@ -19,24 +16,27 @@ export function MiniPlayer({
       <Text style={styles.artistText}>{track?.artist}</Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   artwork: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+    width: '60%',
+    aspectRatio: 1,
+    marginTop: '2%',
+    backgroundColor: 'grey',
   },
   titleText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+    marginTop: 30,
   },
   artistText: {
-    fontSize: 14,
-    color: 'gray',
+    fontSize: 16,
+    fontWeight: '200',
+    color: 'white',
   },
 });
