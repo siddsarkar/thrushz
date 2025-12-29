@@ -5,8 +5,11 @@ import { useSharedValue } from 'react-native-reanimated';
 import TrackPlayer, { useProgress } from 'react-native-track-player';
 
 import { Spacer } from '@/components/player/Spacer';
+import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 
-export const Progress: React.FC<{ live?: boolean }> = ({ live }) => {
+export const Progress = ({ live }: { live?: boolean }) => {
+  const colors = useThemeColors();
+  const typography = useThemeTypography();
   const { position, duration } = useProgress();
 
   const isSliding = useSharedValue(false);
@@ -25,43 +28,56 @@ export const Progress: React.FC<{ live?: boolean }> = ({ live }) => {
   return (
     <View style={styles.container}>
       {live || duration === Infinity ? (
-        <Text style={styles.liveText}>Live Stream</Text>
+        <Text
+          style={[typography.body, styles.liveText, { color: colors.text }]}
+        >
+          Live Stream
+        </Text>
       ) : (
-        <View>
+        <View style={{ width: '90%' }}>
           <Slider
             progress={progress}
             minimumValue={min}
             maximumValue={max}
-            //  containerStyle={{
-            //    ...styles.slider,
-            //    backgroundColor,
-            //  }}
-            thumbWidth={10}
+            containerStyle={{ borderRadius: 4 }}
+            // containerStyle={[styles.slider, { backgroundColor: colors.border }]}
+            thumbWidth={0}
             renderBubble={() => null}
-            //  theme={{
-            //    minimumTrackTintColor: color,
-            //    maximumTrackTintColor: color,
-            //  }}
+            theme={{
+              minimumTrackTintColor: colors.onPrimary,
+              maximumTrackTintColor: colors.text,
+            }}
             onSlidingStart={() => (isSliding.value = true)}
             onValueChange={async (value) => {
               await TrackPlayer.seekTo(value * duration);
               progress.value = value;
             }}
             onSlidingComplete={async (value) => {
-              // if the user is not sliding, we should not update the position
               if (!isSliding.value) return;
-
               isSliding.value = false;
-
               await TrackPlayer.seekTo(value * duration);
             }}
           />
 
           <View style={styles.labelContainer}>
-            <Text style={styles.labelText}>{formatSeconds(position)}</Text>
+            <Text
+              style={[
+                typography.body,
+                styles.labelText,
+                { color: colors.text },
+              ]}
+            >
+              {formatSeconds(position)}
+            </Text>
             <Spacer mode={'expand'} />
-            <Text style={styles.labelText}>
-              {formatSeconds(Math.max(0, duration - position))}
+            <Text
+              style={[
+                typography.body,
+                styles.labelText,
+                { color: colors.text },
+              ]}
+            >
+              -{formatSeconds(Math.max(0, duration - position))}
             </Text>
           </View>
         </View>
@@ -76,13 +92,11 @@ const formatSeconds = (time: number) =>
 const styles = StyleSheet.create({
   container: {
     height: 80,
-    width: '90%',
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   liveText: {
-    fontSize: 18,
-    color: 'white',
     alignSelf: 'center',
   },
   slider: {
@@ -92,9 +106,9 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     flexDirection: 'row',
+    marginTop: 10,
   },
   labelText: {
-    color: 'white',
     fontVariant: ['tabular-nums'],
   },
 });

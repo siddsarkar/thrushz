@@ -1,19 +1,40 @@
 import { Image } from 'expo-image';
+import { decode } from 'html-entities';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { Track } from 'react-native-track-player';
 
-export const TrackInfo: React.FC<{
-  track?: Track;
-}> = ({ track }) => {
+import {
+  useThemeColors,
+  useThemeShadows,
+  useThemeTypography,
+} from '@/theme/hooks/useTheme';
+
+export const TrackInfo = ({ track }: { track?: Track }) => {
+  const colors = useThemeColors();
+  const shadows = useThemeShadows();
+  const typography = useThemeTypography();
+
   // @ts-expect-error - track.artwork is not typed
   const imageUri = track?.artwork?.uri || track?.artwork;
 
   return (
     <View style={styles.container}>
-      <Image style={styles.artwork} source={{ uri: imageUri }} />
-      <Text style={styles.titleText}>{track?.title}</Text>
-      <Text style={styles.artistText}>{track?.artist}</Text>
+      <Image
+        style={[
+          styles.artwork,
+          { backgroundColor: colors.border, ...shadows.sm },
+        ]}
+        source={{ uri: imageUri }}
+      />
+      <Text style={[typography.h1, styles.titleText, { color: colors.text }]}>
+        {decode(track?.title || '')}
+      </Text>
+      <Text
+        style={[typography.body, styles.artistText, { color: colors.text }]}
+      >
+        {decode(track?.artist || '')}
+      </Text>
     </View>
   );
 };
@@ -23,20 +44,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   artwork: {
-    width: '60%',
+    width: '90%',
     aspectRatio: 1,
     marginTop: '2%',
-    backgroundColor: 'grey',
+    marginBottom: '5%',
   },
   titleText: {
-    fontSize: 18,
+    textAlign: 'center',
     fontWeight: '600',
-    color: 'white',
     marginTop: 30,
   },
   artistText: {
-    fontSize: 16,
+    textAlign: 'center',
     fontWeight: '200',
-    color: 'white',
+    marginTop: '2%',
   },
 });

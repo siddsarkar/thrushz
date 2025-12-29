@@ -2,8 +2,7 @@ import { useCallback } from 'react';
 import TrackPlayer from 'react-native-track-player';
 
 import ambientSounds from '@/assets/data/google-ambient-sounds.json';
-import { PlaylistLayout } from '@/components/layouts/playlist-layout';
-
+import { ListLayout } from '@/components/layouts/list-layout';
 
 export default function AmbientSoundsPlaylistScreen() {
   const sounds = ambientSounds;
@@ -27,14 +26,14 @@ export default function AmbientSoundsPlaylistScreen() {
   );
 
   return (
-    <PlaylistLayout
+    <ListLayout
       title="Ambient Sounds"
-      listCount={sounds.length}
+      itemCount={sounds.length}
       image={sounds[0].artwork}
       description="Ambient sounds to relax and sleep"
-      songs={sounds.map((sound) => ({
+      items={sounds.map((sound) => ({
+        ...sound,
         id: sound.id.toString(),
-        title: sound.title,
         image: sound.artwork,
       }))}
       onItemPress={handlePress}

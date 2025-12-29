@@ -5,21 +5,33 @@ import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
 
 import { PlaybackError } from '@/components/player/PlaybackError';
 import { PlayPauseButton } from '@/components/player/PlayPauseButton';
+import { useThemeColors } from '@/theme/hooks/useTheme';
 
 const performSkipToNext = () => TrackPlayer.skipToNext();
 const performSkipToPrevious = () => TrackPlayer.skipToPrevious();
 
 export const PlayerControls: React.FC = () => {
+  const colors = useThemeColors();
   const playback = usePlaybackState();
   return (
     <View style={styles.container}>
       <View style={styles.row}>
         <TouchableWithoutFeedback onPress={performSkipToPrevious}>
-          <Icon name="backward" size={30} color="white" iconStyle="solid" />
+          <Icon
+            name="backward"
+            size={30}
+            color={colors.text}
+            iconStyle="solid"
+          />
         </TouchableWithoutFeedback>
         <PlayPauseButton />
         <TouchableWithoutFeedback onPress={performSkipToNext}>
-          <Icon name="forward" size={30} color="white" iconStyle="solid" />
+          <Icon
+            name="forward"
+            size={30}
+            color={colors.text}
+            iconStyle="solid"
+          />
         </TouchableWithoutFeedback>
       </View>
       <PlaybackError

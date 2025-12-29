@@ -14,7 +14,7 @@ export default function SignIn() {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <FontAwesome name="spotify" size={24} color="white" />
+      <FontAwesome name="spotify" size={24} color={colors.text} />
       <Text
         style={{ color: colors.text }}
         disabled={!request}

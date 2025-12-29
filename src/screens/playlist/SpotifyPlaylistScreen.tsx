@@ -1,5 +1,4 @@
 import { Suspense, use } from 'react';
-import { Text } from 'react-native';
 
 import {
   spotifyApi,
@@ -7,11 +6,14 @@ import {
   SpotifyPlaylistTrack,
 } from '@/api';
 import { useSession } from '@/auth/context/AuthSessionProvider';
-import { PlaylistLayout } from '@/components/layouts/playlist-layout';
+import { ListLayout } from '@/components/layouts/list-layout';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { useThemeColors } from '@/theme/hooks/useTheme';
+import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
+import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
 const fetchPlaylist = async (id: string, token: string) => {
+  if (!id || !token) return Promise.reject('No token or playlistId provided!');
+
   const playlist = await spotifyApi.fetchPlaylistDetails(id, undefined, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -24,6 +26,8 @@ const fetchPlaylistSongs = async (
   id: string,
   token: string
 ): Promise<SpotifyPlaylistTrack[]> => {
+  if (!id || !token) return Promise.reject('No token or playlistId provided!');
+
   const playlist = await spotifyApi.fetchAllItemsInPlaylist(id, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -44,17 +48,19 @@ const SpotifyPlaylistDisplay = ({
   const songs = use(songsPromise);
   const playlist = use(playlistPromise);
   return (
-    <PlaylistLayout
+    <ListLayout
       title={playlist.name}
-      listCount={songs.length}
+      itemCount={songs.length}
       image={playlist.images[0].url}
       description={playlist.description}
-      songs={songs.map((item) => ({
+      items={songs.map((item) => ({
+        ...item.track,
         id: item.track.id,
         title: item.track.name,
+        description: item.track.artists.map((artist) => artist.name).join(', '),
         image: item.track.album.images[0].url,
+        duration: Math.floor(item.track.duration_ms / 1000),
       }))}
-      //   onItemPress={handlePress}
     />
   );
 };
@@ -67,13 +73,10 @@ export default function SpotifyPlaylistScreen({
   const { token } = useSession();
   const songsPromise = fetchPlaylistSongs(playlistId, token || '');
   const playlistPromise = fetchPlaylist(playlistId, token || '');
-  const colors = useThemeColors();
 
   return (
-    <ErrorBoundary fallback={<Text style={{ color: colors.text }}>Error</Text>}>
-      <Suspense
-        fallback={<Text style={{ color: colors.text }}>Loading...</Text>}
-      >
+    <ErrorBoundary fallback={<ErrorIndicator />}>
+      <Suspense fallback={<LoadingIndicator />}>
         <SpotifyPlaylistDisplay
           songsPromise={songsPromise}
           playlistPromise={playlistPromise}

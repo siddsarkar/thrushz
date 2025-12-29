@@ -1,5 +1,4 @@
 import React, { Suspense, use, useCallback } from 'react';
-import { Text } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
 import { jiosaavnApi, JiosaavnApiPlaylist } from '@/api/jiosaavn';
@@ -7,11 +6,14 @@ import {
   createDownloadLinks,
   createImageLinks,
 } from '@/api/jiosaavn/utils/helpers';
-import { PlaylistLayout } from '@/components/layouts/playlist-layout';
+import { ListLayout } from '@/components/layouts/list-layout';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { useThemeColors } from '@/theme/hooks/useTheme';
+import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
+import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
 const fetchPlaylist = async (id: string): Promise<JiosaavnApiPlaylist> => {
+  if (!id) return Promise.reject('No playlistId provided!');
+
   const playlist = await jiosaavnApi.getPlaylistDetails(id, {
     perPage: 100,
   });
@@ -47,15 +49,15 @@ const PlaylistDisplay = ({
   );
 
   return (
-    <PlaylistLayout
+    <ListLayout
       title={playlist.title || ''}
-      listCount={Number(playlist.list_count)}
+      itemCount={Number(playlist.list_count)}
       image={playlist.image}
       description={playlist.header_desc || ''}
-      songs={playlist.list.map((song) => ({
-        id: song.id,
-        title: song.title || '',
-        image: song.image || '',
+      items={playlist.list.map((song) => ({
+        description: `${song.more_info.album} &bull; ${song.more_info.artistMap?.primary_artists[0]?.name}`,
+        duration: Number(song.more_info.duration || 0),
+        ...song,
       }))}
       onItemPress={onItemPress}
     />
@@ -67,14 +69,13 @@ export default function JiosaavnPlaylistScreen({
 }: {
   playlistId: string;
 }) {
+  if (!playlistId) return <ErrorIndicator />;
+
   const songsPromise = fetchPlaylist(playlistId);
-  const colors = useThemeColors();
 
   return (
-    <ErrorBoundary fallback={<Text style={{ color: colors.text }}>Error</Text>}>
-      <Suspense
-        fallback={<Text style={{ color: colors.text }}>Loading...</Text>}
-      >
+    <ErrorBoundary fallback={<ErrorIndicator />}>
+      <Suspense fallback={<LoadingIndicator />}>
         <PlaylistDisplay playlistPromise={songsPromise} />
       </Suspense>
     </ErrorBoundary>

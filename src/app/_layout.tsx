@@ -1,9 +1,15 @@
+import NetInfo from '@react-native-community/netinfo';
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider as NavigationThemeProvider,
 } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
+import {
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { Stack } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
@@ -80,16 +86,27 @@ function RootLayoutInner() {
   );
 }
 
+// Create a client
+const queryClient = new QueryClient();
+
+onlineManager.setEventListener((setOnline) => {
+  return NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected);
+  });
+});
+
 function RootLayout() {
   const isSystemInDark = useColorScheme() === 'dark';
 
   return (
     <GestureHandlerRootView>
-      <AuthSessionProvider>
-        <ThemeProvider systemSchemeIsDark={isSystemInDark}>
-          <RootLayoutInner />
-        </ThemeProvider>
-      </AuthSessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthSessionProvider>
+          <ThemeProvider systemSchemeIsDark={isSystemInDark}>
+            <RootLayoutInner />
+          </ThemeProvider>
+        </AuthSessionProvider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }
