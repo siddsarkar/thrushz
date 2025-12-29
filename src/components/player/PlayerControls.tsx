@@ -3,8 +3,8 @@ import React from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
 
-import { PlaybackError } from './PlaybackError';
-import { PlayPauseButton } from './PlayPauseButton';
+import { PlaybackError } from '@/components/player/PlaybackError';
+import { PlayPauseButton } from '@/components/player/PlayPauseButton';
 
 const performSkipToNext = () => TrackPlayer.skipToNext();
 const performSkipToPrevious = () => TrackPlayer.skipToPrevious();

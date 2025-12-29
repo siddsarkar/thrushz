@@ -17,7 +17,8 @@ export class SpotifyApiClient {
   ): Promise<T> {
     const searchParams = new URLSearchParams(params);
     const paramsStr = searchParams.toString();
-    console.log('[SPOTIFY]', paramsStr);
+    console.log('[SPOTIFY]', `${endpoint}${paramsStr}`);
+
     return fetch(`${this.baseUrl}${endpoint}?${paramsStr}`, options).then(
       (res) => res.json()
     ) as Promise<T>;
@@ -115,3 +116,5 @@ export class SpotifyApiClient {
     return this.request<SpotifyAuthUser>('/v1/me', {}, options);
   }
 }
+
+export const spotifyApi = new SpotifyApiClient();

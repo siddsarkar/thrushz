@@ -4,9 +4,8 @@
  * @description A minimal theme with a clean and professional design.
  */
 
+import { baseDarkTheme, baseLightTheme } from '@/theme/schemes/base';
 import { Theme, ThemeColors } from '@/theme/types';
-
-import { baseDarkTheme, baseLightTheme } from './base';
 
 const minimalLightColors: ThemeColors = {
   primary: '#0066CC',

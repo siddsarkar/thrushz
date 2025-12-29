@@ -1,9 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Redirect } from 'expo-router';
-
-import { useSession } from '@/auth/context/AuthSessionProvider';
 import { Text, View } from 'react-native';
 
+import { useSession } from '@/auth/context/AuthSessionProvider';
 import { useThemeColors } from '@/theme/hooks/useTheme';
 
 export default function SignIn() {

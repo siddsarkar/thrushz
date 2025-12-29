@@ -148,10 +148,12 @@ export class JiosaavnApiClient {
 
     const searchParams = new URLSearchParams(params);
     const paramsStr = searchParams.toString();
-    console.log('[JIOSAAVN]', paramsStr);
+    console.log('[JIOSAAVN]', `/api.php?${paramsStr}`);
 
     return fetch(`${this.baseUrl}/api.php?${paramsStr}`).then((res) =>
       res.json()
     );
   }
 }
+
+export const jiosaavnApi = new JiosaavnApiClient();

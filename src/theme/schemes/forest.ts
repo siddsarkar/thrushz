@@ -5,9 +5,8 @@
  * @colors #629539, #a4d562, #915fce, #6926b1, #401c66
  */
 
+import { baseDarkTheme, baseLightTheme } from '@/theme/schemes/base';
 import { Theme, ThemeColors } from '@/theme/types';
-
-import { baseDarkTheme, baseLightTheme } from './base';
 
 const forestLightColors: ThemeColors = {
   primary: '#629539',

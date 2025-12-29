@@ -1,5 +1,8 @@
+import { Suspense, use } from 'react';
+import { Text } from 'react-native';
+
 import {
-  SpotifyApiClient,
+  spotifyApi,
   SpotifyPlaylistDetailsWithFields,
   SpotifyPlaylistTrack,
 } from '@/api';
@@ -7,28 +10,9 @@ import { useSession } from '@/auth/context/AuthSessionProvider';
 import { PlaylistLayout } from '@/components/layouts/playlist-layout';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-import { Image } from 'expo-image';
-import { Suspense, use } from 'react';
-import { Pressable, Text } from 'react-native';
 
 const fetchPlaylist = async (id: string, token: string) => {
-  const playlist = await new SpotifyApiClient().fetchPlaylistDetails(
-    id,
-    undefined,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return playlist;
-};
-
-const fetchPlaylistSongs = async (
-  id: string,
-  token: string
-): Promise<SpotifyPlaylistTrack[]> => {
-  const playlist = await new SpotifyApiClient().fetchAllItemsInPlaylist(id, {
+  const playlist = await spotifyApi.fetchPlaylistDetails(id, undefined, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -36,25 +20,16 @@ const fetchPlaylistSongs = async (
   return playlist;
 };
 
-const SongDisplay = ({ song }: { song: SpotifyPlaylistTrack }) => {
-  const colors = useThemeColors();
-
-  const handlePress = async () => {
-    // TODO: Implement playback
-  };
-
-  return (
-    <Pressable
-      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}
-      onPress={handlePress}
-    >
-      <Image
-        source={{ uri: song.track.album.images[0].url }}
-        style={{ width: 100, height: 100 }}
-      />
-      <Text style={{ color: colors.text }}>{song.track.name}</Text>
-    </Pressable>
-  );
+const fetchPlaylistSongs = async (
+  id: string,
+  token: string
+): Promise<SpotifyPlaylistTrack[]> => {
+  const playlist = await spotifyApi.fetchAllItemsInPlaylist(id, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return playlist;
 };
 
 const SpotifyPlaylistDisplay = ({

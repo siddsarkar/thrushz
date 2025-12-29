@@ -1,4 +1,8 @@
-import { JiosaavnApiClient, JiosaavnApiPlaylist } from '@/api/jiosaavn';
+import React, { Suspense, use, useCallback } from 'react';
+import { Text } from 'react-native';
+import TrackPlayer from 'react-native-track-player';
+
+import { jiosaavnApi, JiosaavnApiPlaylist } from '@/api/jiosaavn';
 import {
   createDownloadLinks,
   createImageLinks,
@@ -6,12 +10,9 @@ import {
 import { PlaylistLayout } from '@/components/layouts/playlist-layout';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-import React, { Suspense, use, useCallback } from 'react';
-import { Text } from 'react-native';
-import TrackPlayer from 'react-native-track-player';
 
 const fetchPlaylist = async (id: string): Promise<JiosaavnApiPlaylist> => {
-  const playlist = await new JiosaavnApiClient().getPlaylistDetails(id, {
+  const playlist = await jiosaavnApi.getPlaylistDetails(id, {
     perPage: 100,
   });
   return playlist;

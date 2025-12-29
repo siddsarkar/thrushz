@@ -3,9 +3,8 @@
  *
  * @description A girly pop theme with a playful and feminine design.
  */
+import { baseDarkTheme, baseLightTheme } from '@/theme/schemes/base';
 import { Theme, ThemeColors } from '@/theme/types';
-
-import { baseDarkTheme, baseLightTheme } from './base';
 
 const girlyPopLightColors: ThemeColors = {
   primary: '#FF4DA6',

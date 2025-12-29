@@ -1,8 +1,8 @@
 import { Redirect, Stack } from 'expo-router';
+import { Text, View } from 'react-native';
 
 import { useSession } from '@/auth/context/AuthSessionProvider';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-import { Text, View } from 'react-native';
 
 function AppLayout() {
   const { user, isLoading } = useSession();

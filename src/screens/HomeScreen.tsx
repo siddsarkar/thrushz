@@ -1,19 +1,20 @@
-import { JiosaavnApiClient, JiosaavnApiPlaylistMini } from '@/api/jiosaavn';
-import { SpotifyApiClient, SpotifyPlaylist } from '@/api/spotify';
-import ambientSounds from '@/assets/data/google-ambient-sounds.json';
-import { useSession } from '@/auth/context/AuthSessionProvider';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { useThemeColors } from '@/theme/hooks/useTheme';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Suspense, use } from 'react';
 import { Pressable, SectionList, Text, View } from 'react-native';
 
+import { jiosaavnApi, JiosaavnApiPlaylistMini } from '@/api/jiosaavn';
+import { spotifyApi, SpotifyPlaylist } from '@/api/spotify';
+import ambientSounds from '@/assets/data/google-ambient-sounds.json';
+import { useSession } from '@/auth/context/AuthSessionProvider';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { useThemeColors } from '@/theme/hooks/useTheme';
+
 const fetchSpotifyUserPlaylists = async (
   userId: string,
   token: string
 ): Promise<SpotifyPlaylist[]> => {
-  const playlists = await new SpotifyApiClient().fetchUserPlaylists(userId, {
+  const playlists = await spotifyApi.fetchUserPlaylists(userId, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -24,7 +25,7 @@ const fetchSpotifyUserPlaylists = async (
 const fetchJiosaavnTopPlaylists = async (): Promise<
   JiosaavnApiPlaylistMini[]
 > => {
-  const playlists = await new JiosaavnApiClient().getLaunchData();
+  const playlists = await jiosaavnApi.getLaunchData();
   return playlists.top_playlists;
 };
 

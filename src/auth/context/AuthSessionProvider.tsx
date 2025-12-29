@@ -33,14 +33,16 @@ export const discovery: DiscoveryDocument = {
 export const client_id = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID!;
 export const client_secret = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_SECRET!;
 
-const AuthContext = createContext<{
+type AuthContextType = {
   token: string | null;
   signIn: () => void;
   signOut: () => void;
   user?: UserInfo | null;
   request?: AuthRequest | null;
   isLoading: boolean;
-}>({
+};
+
+const AuthContext = createContext<AuthContextType>({
   token: null,
   signIn: () => null,
   signOut: () => null,
@@ -100,7 +102,7 @@ export function AuthSessionProvider({ children }: PropsWithChildren) {
       });
     }
 
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   useEffect(() => {
@@ -165,7 +167,7 @@ export function AuthSessionProvider({ children }: PropsWithChildren) {
           setIsLoading(false);
         });
     }
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingSession]);
 
   const token = useMemo(() => {

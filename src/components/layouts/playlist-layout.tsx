@@ -1,7 +1,8 @@
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { SongListItem } from '../song/SongListItem';
+
+import { SongListItem } from '@/components/song/SongListItem';
 
 export type PlaylistSong = {
   id: string;

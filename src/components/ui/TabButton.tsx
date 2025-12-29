@@ -1,8 +1,9 @@
-import { useThemeColors } from '@/theme/hooks/useTheme';
 import IconPack from '@expo/vector-icons/FontAwesome';
 import { TabTriggerSlotProps } from 'expo-router/ui';
 import { ComponentProps, forwardRef, Ref } from 'react';
 import { Pressable, Text, View } from 'react-native';
+
+import { useThemeColors } from '@/theme/hooks/useTheme';
 
 type Icon = ComponentProps<typeof IconPack>['name'];
 

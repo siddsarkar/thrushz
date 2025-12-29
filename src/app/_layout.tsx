@@ -1,8 +1,3 @@
-import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
-import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
-import { PlaybackService } from '@/services/playback/PlaybackService';
-import { ThemeProvider } from '@/theme';
-import { useTheme } from '@/theme/hooks/useTheme';
 import {
   DarkTheme,
   DefaultTheme,
@@ -15,6 +10,12 @@ import * as SQLite from 'expo-sqlite';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TrackPlayer from 'react-native-track-player';
+
+import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
+import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
+import { PlaybackService } from '@/services/playback/PlaybackService';
+import { ThemeProvider } from '@/theme';
+import { useTheme } from '@/theme/hooks/useTheme';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -52,12 +53,12 @@ function RootLayoutInner() {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
-      primary: theme.colors.primary,
-      background: theme.colors.background,
-      card: theme.colors.surface,
       text: theme.colors.text,
+      card: theme.colors.surface,
       border: theme.colors.border,
+      primary: theme.colors.primary,
       notification: theme.colors.error,
+      background: theme.colors.background,
     },
   };
 

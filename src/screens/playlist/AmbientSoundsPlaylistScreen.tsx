@@ -1,8 +1,9 @@
-import ambientSounds from '@/assets/data/google-ambient-sounds.json';
+import { useCallback } from 'react';
 import TrackPlayer from 'react-native-track-player';
 
+import ambientSounds from '@/assets/data/google-ambient-sounds.json';
 import { PlaylistLayout } from '@/components/layouts/playlist-layout';
-import { useCallback } from 'react';
+
 
 export default function AmbientSoundsPlaylistScreen() {
   const sounds = ambientSounds;

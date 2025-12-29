@@ -1,9 +1,10 @@
-import { useThemeColors } from '@/theme/hooks/useTheme';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React from 'react';
 import { Button, View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
-import { Spacer } from './Spacer';
+
+import { Spacer } from '@/components/player/Spacer';
+import { useThemeColors } from '@/theme/hooks/useTheme';
 
 const onUpdateNotificationMetadata = async () => {
   const randomTitle = Math.random().toString(36).substring(7);

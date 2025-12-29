@@ -1,23 +1,18 @@
 import React, { useEffect } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
 import { useSharedValue } from 'react-native-reanimated';
 import TrackPlayer, { useProgress } from 'react-native-track-player';
-import { Spacer } from './Spacer';
+
+import { Spacer } from '@/components/player/Spacer';
 
 export const Progress: React.FC<{ live?: boolean }> = ({ live }) => {
   const { position, duration } = useProgress();
-
-  // This is a workaround since the slider component only takes absolute widths
-  const progressBarWidth = Dimensions.get('window').width * 0.92;
 
   const isSliding = useSharedValue(false);
   const progress = useSharedValue(0);
   const min = useSharedValue(0);
   const max = useSharedValue(1);
-
-  const trackElapsedTime = formatSeconds(position);
-  const trackRemainingTime = formatSeconds(duration - position);
 
   useEffect(() => {
     if (!isSliding.value) {

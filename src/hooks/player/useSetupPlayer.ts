@@ -1,7 +1,8 @@
-import { QueueInitialTracksService } from '@/services/playback/QueueInitialTracksService';
-import { SetupService } from '@/services/playback/SetupService';
 import { useEffect, useState } from 'react';
 import TrackPlayer from 'react-native-track-player';
+
+import { QueueInitialTracksService } from '@/services/playback/QueueInitialTracksService';
+import { SetupService } from '@/services/playback/SetupService';
 
 export function useSetupPlayer() {
   const [playerReady, setPlayerReady] = useState<boolean>(false);
