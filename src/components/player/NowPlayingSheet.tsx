@@ -1,14 +1,16 @@
 import Icon from '@expo/vector-icons/Ionicons';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Track } from 'react-native-track-player';
 
 import { PlayerControls } from '@/components/player/PlayerControls';
 import { Progress } from '@/components/player/Progress';
-import { Spacer } from '@/components/player/Spacer';
 import { TrackInfo } from '@/components/player/TrackInfo';
-import { useThemeColors } from '@/theme/hooks/useTheme';
+import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
+
+import { PlayerVolumeControls } from './PlayerVolumeControls';
+import { Spacer } from './Spacer';
 
 export function NowPlayingSheet({
   onClosePress,
@@ -18,32 +20,50 @@ export function NowPlayingSheet({
   onClosePress: () => void;
 }) {
   const colors = useThemeColors();
-  const { accent: backgroundColor } = colors;
+  const { primary: backgroundColor } = colors;
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-
+  const typography = useThemeTypography();
   return (
     <BottomSheetScrollView
       showsVerticalScrollIndicator={false}
-      style={{ flex: 1, backgroundColor }}
+      style={{ flex: 1, backgroundColor, paddingTop: insets.top }}
     >
       <View
         style={{
-          paddingTop: insets.top,
           height: windowHeight - insets.bottom - insets.top,
         }}
       >
-        <Pressable
-          onPress={onClosePress}
-          style={{ padding: 20, paddingVertical: 10 }}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-evenly',
+          }}
         >
-          <Icon name="arrow-back" size={28} color={colors.text} />
-        </Pressable>
+          <Pressable onPress={onClosePress} style={{ padding: 20 }}>
+            <Icon name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[typography.h6, { color: colors.text }]}>
+              Now Playing
+            </Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              {track?.album || 'Unknown Album'}
+            </Text>
+          </View>
+          <Pressable onPress={onClosePress} style={{ padding: 20 }}>
+            <Icon name="ellipsis-vertical" size={24} color={colors.text} />
+          </Pressable>
+        </View>
         <TrackInfo track={track} />
         <Progress live={track?.isLiveStream} />
-        <Spacer />
         <PlayerControls />
-        <Spacer mode={'expand'} />
+        <Spacer mode="expand" />
+        <View style={{ padding: 20, paddingBottom: insets.bottom }}>
+          <PlayerVolumeControls />
+        </View>
+        <Spacer mode="expand" />
       </View>
     </BottomSheetScrollView>
   );

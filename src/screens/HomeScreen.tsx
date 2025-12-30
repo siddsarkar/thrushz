@@ -1,7 +1,8 @@
 import Icon from '@expo/vector-icons/Ionicons';
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Image } from 'expo-image';
 import { Link, router } from 'expo-router';
-import { forwardRef, Ref, Suspense, use } from 'react';
+import { forwardRef, Fragment, Ref, Suspense, use } from 'react';
 import { FlatList, Pressable, SectionList, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,7 +13,10 @@ import localPlaylist from '@/assets/data/playlist.json';
 import { useSession } from '@/auth/context/AuthSessionProvider';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
+import { ListItem } from '@/components/ui/ListItem';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { db } from '@/db';
+import { playlistsTable } from '@/db/schema';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 
 const fetchSpotifyUserPlaylists = async (
@@ -57,13 +61,20 @@ const PlaylistItemDisplay = forwardRef<View, PlaylistItemDisplayProps>(
         style={{
           width: 150,
           flexDirection: 'column',
-          alignItems: 'center',
+          // alignItems: 'center',
           gap: 10,
         }}
       >
         <Image
-          source={{ uri: image }}
-          style={{ width: '100%', aspectRatio: 1 }}
+          source={{
+            uri: image,
+          }}
+          placeholder={require('@/assets/images/app-icon.png')}
+          style={{
+            width: '100%',
+            aspectRatio: 1,
+            backgroundColor: colors.card,
+          }}
         />
         <View style={{ flex: 1 }}>
           <Text style={[typography.body, { color: colors.text }]}>{title}</Text>
@@ -79,6 +90,62 @@ const PlaylistItemDisplay = forwardRef<View, PlaylistItemDisplayProps>(
 );
 
 PlaylistItemDisplay.displayName = 'PlaylistItemDisplay';
+
+const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
+  (
+    { title, image, description, ...props }: PlaylistItemDisplayProps,
+    ref: Ref<View>
+  ) => {
+    const colors = useThemeColors();
+    return (
+      <Pressable
+        ref={ref}
+        {...props}
+        style={{
+          flex: 1,
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10,
+          // padding: 5,
+          backgroundColor: colors.border,
+        }}
+      >
+        <ListItem
+          onPress={(props as { onPress: () => void }).onPress}
+          title={title}
+          description={description}
+          image={image}
+        />
+      </Pressable>
+    );
+  }
+);
+
+PlaylistItemDisplayInline.displayName = 'PlaylistItemDisplayInline';
+
+const MyPlaylistsPlaylistDisplay = () => {
+  const { data: playlists } = useLiveQuery(db.select().from(playlistsTable));
+  return (
+    <FlatList
+      data={playlists}
+      numColumns={2}
+      contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}
+      columnWrapperStyle={{ gap: 10, paddingHorizontal: 16 }}
+      style={{ gap: 10 }}
+      renderItem={({ item }) => (
+        <Link
+          href={{ pathname: '/playlist/[id]', params: { id: item.id || '' } }}
+          asChild
+        >
+          <PlaylistItemDisplayInline
+            title={item.name || ''}
+            image={item.image || ''}
+          />
+        </Link>
+      )}
+    />
+  );
+};
 
 const AmbientSoundsPlaylistDisplay = () => {
   return (
@@ -144,6 +211,14 @@ const JiosaavnPlaylistDisplay = ({
   );
 };
 
+type SectionItem = string | JiosaavnApiPlaylistMini | SpotifyPlaylist;
+
+type Section = {
+  title: string;
+  source: string;
+  data: readonly SectionItem[];
+};
+
 const PlaylistListDisplay = ({
   jiosaavnTopPlaylistsPromise,
   spotifyUserPlaylistsPromise,
@@ -159,34 +234,33 @@ const PlaylistListDisplay = ({
   const typography = useThemeTypography();
 
   return (
-    <SectionList<{
-      playlist: JiosaavnApiPlaylistMini | SpotifyPlaylist | { id: string };
-      source: 'jiosaavn' | 'spotify' | 'local';
-    }>
+    <SectionList
       style={{ flex: 1, paddingTop: insets.top }}
-      sections={[
-        {
-          title: 'Ambient Sounds',
-          data: [
-            { playlist: { id: 'ambient-sounds' }, source: 'local' },
-            { playlist: { id: 'sample-playlist' }, source: 'local' },
-          ],
-        },
-        {
-          title: 'Jiosaavn Top Playlists',
-          data: jiosaavnTopPlaylists.map((playlist) => ({
-            playlist,
+      contentContainerStyle={{ paddingBottom: 60 }}
+      sections={
+        [
+          {
+            title: 'My Playlists',
+            source: 'local',
+            data: ['my-playlists'],
+          },
+          {
+            title: 'Ambient Sounds',
+            source: 'asset-local',
+            data: ['ambient-sounds', 'sample-playlist', 'ambient-sounds'],
+          },
+          {
+            title: 'Jiosaavn Top Playlists',
             source: 'jiosaavn',
-          })),
-        },
-        {
-          title: 'Spotify User Playlists',
-          data: spotifyUserPlaylists.map((playlist) => ({
-            playlist,
+            data: jiosaavnTopPlaylists,
+          },
+          {
+            title: 'Spotify User Playlists',
             source: 'spotify',
-          })),
-        },
-      ]}
+            data: spotifyUserPlaylists,
+          },
+        ] as readonly Section[]
+      }
       renderItem={() => null}
       ListHeaderComponent={
         <View
@@ -198,40 +272,51 @@ const PlaylistListDisplay = ({
           }}
         >
           <Text style={[typography.h1, { color: colors.text }]}>Home</Text>
-          <Pressable onPress={() => router.push('/settings')}>
-            <Icon name="settings-outline" size={24} color={colors.text} />
-          </Pressable>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+            <Pressable onPress={() => router.push('/playlist/create')}>
+              <Icon name="add" size={24} color={colors.text} />
+            </Pressable>
+            <Pressable onPress={() => router.push('/settings')}>
+              <Icon name="settings-outline" size={24} color={colors.text} />
+            </Pressable>
+          </View>
         </View>
       }
-      renderSectionHeader={({ section: { title, data } }) => (
+      renderSectionHeader={({ section: { title, data, source } }) => (
         <View>
-          <View style={{ padding: 16 }}>
-            <Text style={[typography.bodyLarge, { color: colors.text }]}>
-              {title}
-            </Text>
-          </View>
-          <FlatList
-            data={data}
-            horizontal
-            contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}
-            renderItem={({ item }) =>
-              item.source === 'jiosaavn' ? (
-                <JiosaavnPlaylistDisplay
-                  playlist={item.playlist as JiosaavnApiPlaylistMini}
-                />
-              ) : item.source === 'spotify' ? (
-                <SpotifyPlaylistDisplay
-                  playlist={item.playlist as SpotifyPlaylist}
-                />
-              ) : item.source === 'local' ? (
-                item.playlist.id === 'ambient-sounds' ? (
-                  <AmbientSoundsPlaylistDisplay />
-                ) : (
-                  <SampleLocalPlaylistDisplay />
-                )
-              ) : null
-            }
-          />
+          {source === 'local' ? (
+            <MyPlaylistsPlaylistDisplay />
+          ) : (
+            <Fragment>
+              <View style={{ padding: 16 }}>
+                <Text style={[typography.h5, { color: colors.text }]}>
+                  {title}
+                </Text>
+              </View>
+              <FlatList
+                data={data}
+                horizontal
+                contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}
+                renderItem={({ item }) =>
+                  source === 'jiosaavn' ? (
+                    <JiosaavnPlaylistDisplay
+                      playlist={item as unknown as JiosaavnApiPlaylistMini}
+                    />
+                  ) : source === 'spotify' ? (
+                    <SpotifyPlaylistDisplay
+                      playlist={item as unknown as SpotifyPlaylist}
+                    />
+                  ) : source === 'asset-local' ? (
+                    (item as unknown as string) === 'ambient-sounds' ? (
+                      <AmbientSoundsPlaylistDisplay />
+                    ) : (
+                      <SampleLocalPlaylistDisplay />
+                    )
+                  ) : null
+                }
+              />
+            </Fragment>
+          )}
         </View>
       )}
     />

@@ -1,12 +1,10 @@
 import { File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
-import { IPicture, parseBuffer, selectCover } from 'music-metadata';
+import { parseBuffer, selectCover } from 'music-metadata';
 import { Suspense, use, useState } from 'react';
 import { Text } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
-// @ts-expect-error – sure we can import this
-import localArtwork from '@/assets/resources/artwork.jpg';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { ListItem } from '@/components/ui/ListItem';
@@ -28,44 +26,30 @@ function AlbumEntry({
   const album = use(albumPromise);
   const [after, setAfter] = useState<MediaLibrary.AssetRef | undefined>();
 
-  const getArtwork = async (cover: IPicture | null) => {
-    if (cover) {
-      const artwork = new File(Paths.cache, 'artwork.jpg');
-      artwork.create({ overwrite: true });
-      artwork.write(new Uint8Array(cover?.data || []));
-      return artwork.uri;
-    }
-    return localArtwork;
-  };
-
   const playAudio = async (asset: MediaLibrary.Asset) => {
     const file = new File(asset.uri);
 
     console.log('parsing metadata...', { file: file.name, type: file.type });
     try {
       const bytes = await file.bytes();
-      const { common, format } = await parseBuffer(new Uint8Array(bytes), {
-        mimeType: 'audio/mp4',
-      });
+      const metadata = await parseBuffer(new Uint8Array(bytes));
+      console.log('metadata.common.title', metadata.common.title);
+      console.log('metadata.common.album', metadata.common.album);
+      console.log('metadata.common.artist', metadata.common.artist);
+      console.log('metadata.format.duration', metadata.format.duration);
+      const cover = selectCover(metadata.common.picture); // pick the cover image
 
-      const { duration } = format;
-      const { title, album, artist, picture } = common;
-
-      console.log(
-        'metadata',
-        JSON.stringify({ title, album, artist, duration })
-      );
-
-      const cover = selectCover(picture); // pick the cover image
-      const artwork = await getArtwork(cover);
+      const artwork = new File(Paths.cache, 'artwork.jpg');
+      artwork.create({ overwrite: true });
+      artwork.write(new Uint8Array(cover?.data || []));
       await TrackPlayer.reset();
       await TrackPlayer.add({
         url: file.uri,
-        title: title || file.name,
-        artwork: artwork,
-        album: album || 'Unknown Album',
-        artist: artist || 'Unknown Artist',
-        duration,
+        title: metadata.common.title,
+        artwork: artwork.uri,
+        album: metadata.common.album,
+        artist: metadata.common.artist,
+        duration: metadata.format.duration,
       });
       await TrackPlayer.play();
     } catch (error) {

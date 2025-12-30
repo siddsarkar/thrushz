@@ -1,6 +1,7 @@
 import Icon from '@expo/vector-icons/Ionicons';
 import { Directory, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Button, Pressable, Text, ToastAndroid, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +14,10 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const typography = useThemeTypography();
+
+  const [cacheSize, setCacheSize] = useState(
+    new Directory(Paths.cache).size || 0
+  );
 
   const clearCache = () => {
     const dir = new Directory(Paths.cache);
@@ -45,7 +50,10 @@ export default function SettingsScreen() {
       <Text style={[typography.h1, { color: colors.text }]}>Settings</Text>
 
       <View>
-        <Button title="Clear cache" onPress={clearCache} />
+        <Button
+          title={`Clear cache (${formatBytes(cacheSize)})`}
+          onPress={clearCache}
+        />
         <Button title="Sign out" onPress={handleSignOut} />
       </View>
     </View>

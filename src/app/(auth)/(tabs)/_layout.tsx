@@ -14,11 +14,12 @@ import { NowPlayingSheet } from '@/components/player/NowPlayingSheet';
 import { TabButton } from '@/components/ui/TabButton';
 import { withModalProvider } from '@/hoc/withModalProvider';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
+import { useThemeColors } from '@/theme/hooks/useTheme';
 
 const TabLayout = withModalProvider(() => {
   const insets = useSafeAreaInsets();
   const track = useActiveTrack();
-
+  const colors = useThemeColors();
   // states
   const [backdropPressBehavior] = useState<'none' | 'close' | 'collapse'>(
     'close'
@@ -73,6 +74,7 @@ const TabLayout = withModalProvider(() => {
           enableDynamicSizing={false}
           backdropComponent={renderBackdrop}
           onDismiss={handleDismiss}
+          backgroundStyle={{ backgroundColor: colors.card }}
         >
           <NowPlayingSheet track={track} onClosePress={handleClosePress} />
         </BottomSheetModal>
@@ -92,7 +94,7 @@ const TabLayout = withModalProvider(() => {
             <TabButton icon="home" />
           </TabTrigger>
           <TabTrigger name="search" asChild>
-            <TabButton icon="magnifying-glass" />
+            <TabButton icon="search" />
           </TabTrigger>
           <TabTrigger name="library" asChild>
             <TabButton icon="book" />

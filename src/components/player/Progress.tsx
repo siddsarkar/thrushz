@@ -41,11 +41,11 @@ export const Progress = ({ live }: { live?: boolean }) => {
             maximumValue={max}
             containerStyle={{ borderRadius: 4 }}
             // containerStyle={[styles.slider, { backgroundColor: colors.border }]}
-            thumbWidth={0}
+            thumbWidth={12}
             renderBubble={() => null}
             theme={{
-              minimumTrackTintColor: colors.onPrimary,
-              maximumTrackTintColor: colors.text,
+              minimumTrackTintColor: colors.text,
+              maximumTrackTintColor: colors.textMuted,
             }}
             onSlidingStart={() => (isSliding.value = true)}
             onValueChange={async (value) => {
@@ -64,7 +64,7 @@ export const Progress = ({ live }: { live?: boolean }) => {
               style={[
                 typography.body,
                 styles.labelText,
-                { color: colors.text },
+                { color: colors.textSecondary },
               ]}
             >
               {formatSeconds(position)}
@@ -74,7 +74,7 @@ export const Progress = ({ live }: { live?: boolean }) => {
               style={[
                 typography.body,
                 styles.labelText,
-                { color: colors.text },
+                { color: colors.textSecondary },
               ]}
             >
               -{formatSeconds(Math.max(0, duration - position))}

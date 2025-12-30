@@ -10,18 +10,28 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
-import * as SQLite from 'expo-sqlite';
-import { ActivityIndicator, useColorScheme, View } from 'react-native';
+import { useEffect } from 'react';
+import {
+  ActivityIndicator,
+  Linking,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TrackPlayer from 'react-native-track-player';
 
 import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
+import { OverlayLoader } from '@/components/ui/OverlayLoader';
+import { OverlayLoaderProvider } from '@/contexts/OverlayLoaderContext';
+import { db } from '@/db';
+import migrations from '@/drizzle/migrations';
 import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
 import { PlaybackService } from '@/services/playback/PlaybackService';
 import { ThemeProvider } from '@/theme';
-import { useTheme } from '@/theme/hooks/useTheme';
+import { useTheme, useThemeColors } from '@/theme/hooks/useTheme';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -47,12 +57,27 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
-const expo = SQLite.openDatabaseSync('db.db');
-const db = drizzle(expo);
-
 function RootLayoutInner() {
   const isPlayerReady = useSetupPlayer();
   const { isDark, theme } = useTheme();
+  const colors = useThemeColors();
+  const { success, error } = useMigrations(db, migrations);
+
+  useEffect(() => {
+    function deepLinkHandler(data: { url: string }) {
+      console.log('deepLinkHandler', data.url);
+    }
+
+    // This event will be fired when the app is already open and the notification is clicked
+    const subscription = Linking.addEventListener('url', deepLinkHandler);
+
+    // When you launch the closed app from the notification or any other link
+    Linking.getInitialURL().then((url) => console.log('getInitialURL', url));
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Create navigation theme based on our theme
   const navigationTheme: ReactNavigation.Theme = {
@@ -76,13 +101,33 @@ function RootLayoutInner() {
     );
   }
 
+  if (error) {
+    return (
+      <View>
+        <Text style={{ color: colors.text }}>
+          Migration error: {error.message}
+        </Text>
+      </View>
+    );
+  }
+  if (!success) {
+    return (
+      <View>
+        <Text style={{ color: colors.text }}>Migration is in progress...</Text>
+      </View>
+    );
+  }
+
   return (
-    <NavigationThemeProvider value={navigationTheme}>
-      <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-      </Stack>
-    </NavigationThemeProvider>
+    <OverlayLoaderProvider>
+      <NavigationThemeProvider value={navigationTheme}>
+        <Stack>
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        </Stack>
+      </NavigationThemeProvider>
+      <OverlayLoader />
+    </OverlayLoaderProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import IconPack from '@expo/vector-icons/Foundation';
+import IconPack from '@expo/vector-icons/Ionicons';
 import { TabTriggerSlotProps } from 'expo-router/ui';
 import { ComponentProps, forwardRef, Ref } from 'react';
 import { Pressable, Text, View } from 'react-native';

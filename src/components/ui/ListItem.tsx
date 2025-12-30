@@ -11,7 +11,9 @@ export type ListItemProps = {
   numberOfLinesDescription?: number;
   image?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
   EndElement?: React.ReactNode;
+  isPlayable?: boolean;
 };
 
 export function ListItem(props: ListItemProps) {
@@ -22,15 +24,21 @@ export function ListItem(props: ListItemProps) {
     numberOfLinesDescription = 1,
     image,
     onPress,
+    onLongPress,
     EndElement,
+    isPlayable = true,
   } = props;
 
   const colors = useThemeColors();
   const typography = useThemeTypography();
   return (
     <Pressable
-      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}
-      onPress={onPress}
+      style={[
+        { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+        !isPlayable && { opacity: 0.5 },
+      ]}
+      onPress={isPlayable ? onPress : undefined}
+      onLongPress={isPlayable ? onLongPress : undefined}
     >
       <Image
         source={{ uri: image }}

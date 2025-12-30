@@ -1,7 +1,9 @@
 import FontAwesome5 from '@expo/vector-icons/Ionicons';
+// import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ListItem } from '@/components/ui/ListItem';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
@@ -13,9 +15,11 @@ export type ListItemType = {
   description?: string;
   image?: string;
   duration?: number;
+  isPlayable?: boolean;
   [key: string]: unknown;
 };
 
+type MoreIcon = React.ComponentProps<typeof FontAwesome5>['name'];
 export type ListLayoutProps = {
   title: string;
   description?: string;
@@ -23,19 +27,26 @@ export type ListLayoutProps = {
   items: ListItemType[];
   itemCount: number;
   onItemPress?: (item: ListItemType) => void;
+  onItemLongPress?: (item: ListItemType) => void;
+  moreIcon?: MoreIcon;
+  onMorePress?: () => void;
 };
 
 const HEADER_HEIGHT = 350;
+const MIN_HEADER_HEIGHT = 90;
+
+const HEADER_HEIGHT_DIFF = HEADER_HEIGHT - MIN_HEADER_HEIGHT;
 
 export function ListLayout(props: ListLayoutProps) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
+  const insets = useSafeAreaInsets();
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
   const translateHeader = scrollY.interpolate({
-    inputRange: [0, 260],
-    outputRange: [0, -260],
+    inputRange: [0, HEADER_HEIGHT_DIFF],
+    outputRange: [0, -HEADER_HEIGHT_DIFF],
     extrapolate: 'clamp',
   });
   const opacityImage = scrollY.interpolate({
@@ -68,18 +79,65 @@ export function ListLayout(props: ListLayoutProps) {
 
   return (
     <View style={{ backgroundColor: colors.background, position: 'relative' }}>
-      <Pressable style={styles.headerBackButton} onPress={() => router.back()}>
-        <FontAwesome5 name="arrow-back" size={26} color={colors.text} />
+      <Pressable
+        style={{
+          paddingTop: insets.top,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: MIN_HEADER_HEIGHT,
+          // width: 80,
+          aspectRatio: 1,
+          justifyContent: 'center',
+          // alignItems: 'center',
+          zIndex: 2,
+          paddingHorizontal: 24,
+          // backgroundColor: 'blue',
+        }}
+        onPress={() => router.back()}
+      >
+        <FontAwesome5 name="arrow-back" size={20} color={colors.text} />
       </Pressable>
+      {props.onMorePress && (
+        <View
+          style={{
+            paddingTop: insets.top,
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            zIndex: 2,
+            height: MIN_HEADER_HEIGHT,
+            aspectRatio: 1,
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            // backgroundColor: 'red',
+          }}
+        >
+          <Pressable
+            style={{ paddingHorizontal: 20 }}
+            onPress={props.onMorePress}
+          >
+            <FontAwesome5
+              name={props.moreIcon || 'ellipsis-vertical'}
+              size={20}
+              color={colors.text}
+            />
+          </Pressable>
+        </View>
+      )}
       <Animated.View
         style={[
           styles.header,
-          { backgroundColor: colors.card },
+          { backgroundColor: colors.background },
           { transform: [{ translateY: translateHeader }] },
         ]}
       >
         <Animated.Image
-          source={{ uri: props.image }}
+          source={
+            props.image
+              ? { uri: props.image }
+              : require('@/assets/images/android-icon-foreground.png')
+          }
           style={[
             styles.headerImage,
             { backgroundColor: colors.card },
@@ -143,10 +201,12 @@ export function ListLayout(props: ListLayoutProps) {
           <ListItem
             title={item.title}
             numberOfLinesTitle={2}
+            isPlayable={item.isPlayable}
             description={item.description}
             numberOfLinesDescription={1}
             image={item.image}
             onPress={() => props.onItemPress?.(item)}
+            onLongPress={() => props.onItemLongPress?.(item)}
             EndElement={
               item.duration ? (
                 <Text style={[typography.caption, { color: colors.textMuted }]}>
@@ -176,17 +236,6 @@ const styles = StyleSheet.create({
     height: HEADER_HEIGHT,
     alignItems: 'stretch',
     justifyContent: 'flex-end',
-  },
-  headerBackButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    height: 120,
-    width: 80,
-    aspectRatio: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 2,
   },
   headerImage: {
     flex: 1,

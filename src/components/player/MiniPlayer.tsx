@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { decode } from 'html-entities';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Track } from 'react-native-track-player';
+import { Track, useProgress } from 'react-native-track-player';
 
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 
@@ -16,11 +16,31 @@ export function MiniPlayer({
 }) {
   const typography = useThemeTypography();
   const colors = useThemeColors();
+  const { position, duration } = useProgress();
+  const progress = position / duration;
   // @ts-expect-error - track.artwork is not typed
   const imageUri = track?.artwork?.uri || track?.artwork;
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: colors.background }]}>
+    <View style={[styles.wrapper, { backgroundColor: colors.primary }]}>
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 16,
+          right: 16,
+          height: 2,
+          backgroundColor: colors.textMuted,
+        }}
+      >
+        <View
+          style={{
+            width: `${progress * 100}%`,
+            height: '100%',
+            backgroundColor: colors.text,
+          }}
+        />
+      </View>
       <Pressable style={styles.container} onPress={onPress}>
         <View style={styles.artworkContainer}>
           <Image style={styles.artwork} source={{ uri: imageUri }} />
@@ -33,7 +53,7 @@ export function MiniPlayer({
             {decode(track?.title)}
           </Text>
           <Text
-            style={[typography.caption, { color: colors.textMuted }]}
+            style={[typography.caption, { color: colors.textSecondary }]}
             numberOfLines={1}
           >
             {decode(track?.artist)}
@@ -51,6 +71,7 @@ const styles = StyleSheet.create({
   wrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
   },
   container: {
     flexDirection: 'row',
@@ -61,8 +82,8 @@ const styles = StyleSheet.create({
   },
   artworkContainer: {
     width: 50,
-    height: 52,
-    justifyContent: 'flex-end',
+    height: 60,
+    justifyContent: 'center',
   },
   artwork: {
     width: '100%',

@@ -2,41 +2,36 @@ import { Theme, ThemeSpacing, ThemeTypography } from '@/theme/types';
 
 // Base typography (shared across all themes)
 const baseTypography: ThemeTypography = {
-  h1: { fontSize: 32, fontWeight: '700', lineHeight: 40, fontFamily: 'HankenGrotesk_800ExtraBold' },
-  h2: { fontSize: 28, fontWeight: '600', lineHeight: 36, fontFamily: 'HankenGrotesk_700Bold' },
-  h3: { fontSize: 24, fontWeight: '600', lineHeight: 32, fontFamily: 'HankenGrotesk_600SemiBold' },
-  h4: { fontSize: 20, fontWeight: '600', lineHeight: 28, fontFamily: 'HankenGrotesk_600SemiBold' },
-  h5: { fontSize: 16, fontWeight: '600', lineHeight: 24, fontFamily: 'HankenGrotesk_600SemiBold' },
-  h6: { fontSize: 14, fontWeight: '600', lineHeight: 20, fontFamily: 'HankenGrotesk_600SemiBold' },
+  h1: { fontSize: 32, fontWeight: '700', lineHeight: 40 },
+  h2: { fontSize: 28, fontWeight: '600', lineHeight: 36 },
+  h3: { fontSize: 24, fontWeight: '600', lineHeight: 32 },
+  h4: { fontSize: 20, fontWeight: '600', lineHeight: 28 },
+  h5: { fontSize: 16, fontWeight: '600', lineHeight: 24 },
+  h6: { fontSize: 14, fontWeight: '600', lineHeight: 20 },
   body: {
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 24,
-    fontFamily: 'HankenGrotesk_400Regular',
   },
   bodyLarge: {
     fontSize: 18,
     fontWeight: '400',
     lineHeight: 28,
-    fontFamily: 'HankenGrotesk_400Regular',
   },
   bodySmall: {
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,
-    fontFamily: 'HankenGrotesk_400Regular',
   },
   caption: {
     fontSize: 12,
     fontWeight: '400',
     lineHeight: 16,
-    fontFamily: 'HankenGrotesk_400Regular',
   },
   button: {
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 24,
-    fontFamily: 'HankenGrotesk_600SemiBold',
   },
 };
 

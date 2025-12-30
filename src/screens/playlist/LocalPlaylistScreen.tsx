@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback } from 'react';
 import TrackPlayer from 'react-native-track-player';
 
@@ -24,6 +25,15 @@ export default function LocalPlaylistScreen() {
     [tracks]
   );
 
+  const handleLongPress = useCallback(
+    async ({ id }: { id: string }) => {
+      const track = tracks.find((_, index) => index.toString() === id);
+      if (!track) return;
+      router.push(`/downloads?url=${track.url}`);
+    },
+    [tracks]
+  );
+
   return (
     <ListLayout
       title="Local Playlist"
@@ -36,6 +46,7 @@ export default function LocalPlaylistScreen() {
         image: sound.artwork,
       }))}
       onItemPress={handlePress}
+      onItemLongPress={handleLongPress}
     />
   );
 }

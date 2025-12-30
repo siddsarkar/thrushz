@@ -8,7 +8,7 @@ import { baseDarkTheme, baseLightTheme } from '@/theme/schemes/base';
 import { Theme, ThemeColors } from '@/theme/types';
 
 const minimalLightColors: ThemeColors = {
-  primary: '#0066CC',
+  primary: '#06b6d4',
   secondary: '#22c55e',
   background: '#FFFFFF',
   surface: '#F8F9FA',

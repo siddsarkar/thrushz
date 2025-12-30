@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { decode } from 'html-entities';
 import React from 'react';
@@ -27,14 +28,31 @@ export const TrackInfo = ({ track }: { track?: Track }) => {
         ]}
         source={{ uri: imageUri }}
       />
-      <Text style={[typography.h1, styles.titleText, { color: colors.text }]}>
-        {decode(track?.title || '')}
-      </Text>
-      <Text
-        style={[typography.body, styles.artistText, { color: colors.text }]}
+      <View
+        style={{
+          width: '90%',
+          gap: 4,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
       >
-        {decode(track?.artist || '')}
-      </Text>
+        <View style={{ flex: 1 }}>
+          <Text
+            numberOfLines={2}
+            style={[typography.h4, { color: colors.text }]}
+          >
+            {decode(track?.title || '')}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={[typography.body, { color: colors.textSecondary }]}
+          >
+            {decode(track?.artist || '')}
+          </Text>
+        </View>
+        <Ionicons name="bookmark" size={30} color={colors.text} />
+      </View>
     </View>
   );
 };
@@ -48,15 +66,5 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     marginTop: '2%',
     marginBottom: '5%',
-  },
-  titleText: {
-    textAlign: 'center',
-    fontWeight: '600',
-    marginTop: 30,
-  },
-  artistText: {
-    textAlign: 'center',
-    fontWeight: '200',
-    marginTop: '2%',
   },
 });

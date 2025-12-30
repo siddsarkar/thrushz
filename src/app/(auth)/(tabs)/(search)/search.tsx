@@ -1,5 +1,6 @@
-import SearchScreen from '@/screens/SearchScreen';
+import SongSearchScreen from '@/screens/SearchScreen';
 
 export default function Page() {
-  return <SearchScreen />;
+  return <SongSearchScreen />;
+  // return <SAFExplorerScreen />;
 }
