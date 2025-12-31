@@ -1,4 +1,3 @@
-// @ts-ignore
 import crypto from 'node-forge';
 
 export const createDownloadLinks = (encryptedMediaUrl: string) => {

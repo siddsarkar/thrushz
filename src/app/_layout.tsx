@@ -31,7 +31,7 @@ import migrations from '@/drizzle/migrations';
 import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
 import { PlaybackService } from '@/services/playback/PlaybackService';
 import { ThemeProvider } from '@/theme';
-import { useTheme, useThemeColors } from '@/theme/hooks/useTheme';
+import { useTheme } from '@/theme/hooks/useTheme';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -57,11 +57,25 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
-function RootLayoutInner() {
+const queryClient = new QueryClient();
+
+onlineManager.setEventListener((setOnline) => {
+  return NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected);
+  });
+});
+
+function Inner() {
+  const {
+    isDark,
+    theme: { colors },
+  } = useTheme();
+
   const isPlayerReady = useSetupPlayer();
-  const { isDark, theme } = useTheme();
-  const colors = useThemeColors();
-  const { success, error } = useMigrations(db, migrations);
+  const { success: migrationsSuccess, error: migrationsError } = useMigrations(
+    db,
+    migrations
+  );
 
   useEffect(() => {
     function deepLinkHandler(data: { url: string }) {
@@ -84,12 +98,12 @@ function RootLayoutInner() {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
-      text: theme.colors.text,
-      card: theme.colors.surface,
-      border: theme.colors.border,
-      primary: theme.colors.primary,
-      notification: theme.colors.error,
-      background: theme.colors.background,
+      text: colors.text,
+      card: colors.card,
+      border: colors.border,
+      primary: colors.primary,
+      background: colors.background,
+      notification: colors.accent,
     },
   };
 
@@ -101,16 +115,17 @@ function RootLayoutInner() {
     );
   }
 
-  if (error) {
+  if (migrationsError) {
     return (
       <View>
         <Text style={{ color: colors.text }}>
-          Migration error: {error.message}
+          Migration error: {migrationsError.message}
         </Text>
       </View>
     );
   }
-  if (!success) {
+
+  if (!migrationsSuccess) {
     return (
       <View>
         <Text style={{ color: colors.text }}>Migration is in progress...</Text>
@@ -131,15 +146,6 @@ function RootLayoutInner() {
   );
 }
 
-// Create a client
-const queryClient = new QueryClient();
-
-onlineManager.setEventListener((setOnline) => {
-  return NetInfo.addEventListener((state) => {
-    setOnline(!!state.isConnected);
-  });
-});
-
 function RootLayout() {
   const isSystemInDark = useColorScheme() === 'dark';
 
@@ -148,7 +154,7 @@ function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthSessionProvider>
           <ThemeProvider systemSchemeIsDark={isSystemInDark}>
-            <RootLayoutInner />
+            <Inner />
           </ThemeProvider>
         </AuthSessionProvider>
       </QueryClientProvider>
