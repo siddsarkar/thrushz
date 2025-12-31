@@ -46,10 +46,10 @@ export const PlayerRepeatModeToggle = ({ ...iconProps }: IconProps) => {
     repeatMode === RepeatMode.Off
       ? 'repeat-outline'
       : repeatMode === RepeatMode.Track
-      ? 'repeat-sharp'
-      : repeatMode === RepeatMode.Queue
-      ? 'repeat'
-      : 'eye-off';
+        ? 'repeat-sharp'
+        : repeatMode === RepeatMode.Queue
+          ? 'repeat'
+          : 'eye-off';
 
   return (
     <Icon

@@ -84,7 +84,7 @@ export type JiosaavnApiAlbumMini = z.infer<typeof JiosaavnApiAlbumMiniSchema>;
 // ---------- Paginated Response Schemas ----------
 
 export const JiosaavnPaginatedResponseSchema = <T extends z.ZodTypeAny>(
-  itemSchema: T,
+  itemSchema: T
 ) =>
   z.object({
     total: z.number(),

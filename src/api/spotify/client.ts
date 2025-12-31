@@ -59,7 +59,8 @@ export class SpotifyApiClient {
   }
 
   async fetchPlaylistDetails<
-    T extends readonly (keyof SpotifyPlaylistDetails)[] = readonly (keyof SpotifyPlaylistDetails)[]
+    T extends readonly (keyof SpotifyPlaylistDetails)[] =
+      readonly (keyof SpotifyPlaylistDetails)[],
   >(
     playlistId: string,
     fields?: T,

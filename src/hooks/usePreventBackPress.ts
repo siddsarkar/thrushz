@@ -7,7 +7,7 @@ import { BackHandler } from 'react-native';
  */
 export const usePreventBackPress = (
   preventBackPress: boolean,
-  onClose?: () => void,
+  onClose?: () => void
 ) => {
   useFocusEffect(
     useCallback(() => {
@@ -22,10 +22,10 @@ export const usePreventBackPress = (
 
       const backHandler = BackHandler.addEventListener(
         'hardwareBackPress',
-        onBackPress,
+        onBackPress
       );
 
       return () => backHandler.remove();
-    }, [preventBackPress, onClose]),
+    }, [preventBackPress, onClose])
   );
 };

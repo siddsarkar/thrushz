@@ -1,27 +1,44 @@
+:eas-setup (manual)
+    - expo-updates (command: eas update:configure) ✅
+:drizzle (setup guide: https://orm.drizzle.team/docs/get-started/expo-new)
+    - expo-sqlite ✅
+    - drizzle-orm ✅
+    - drizzle-kit ✅
+    - babel-plugin-inline-import ✅
 :native-modules
     react-native-track-player ✅ (getting started: https://rntp.dev/docs/next/basics/installation)
     @react-native-community/netinfo ✅
-    drizzle (setup guide: https://orm.drizzle.team/docs/get-started/expo-new)
-        - expo-sqlite ✅
-        - drizzle-orm ✅
-        - drizzle-kit ✅
-        - babel-plugin-inline-import ✅
     expo-auth-session ✅
         - expo-crypto ✅
     expo-dev-client ✅
     expo-file-system ✅
     expo-media-library ✅
     expo-secure-store ✅
-    eas-setup (manual)
-        - expo-updates (command: eas update:configure) ✅
     @sentry/react-native ✅ (wizard: bunx @sentry/wizard@latest -i reactNative)
-    expo-build-properties ✅ - ??
+    expo-build-properties ✅
     zod ✅
     html-entities ✅
+    music-metadata ✅
+    node-forge ✅
+        - @types/node-forge ☑️
     @gorhom/bottom-sheet ✅ (https://gorhom.dev/react-native-bottom-sheet/)
     expo-navigation-bar ✅ (https://docs.expo.dev/versions/latest/sdk/navigation-bar/)
     react-native-pager-view ✅ (https://docs.expo.dev/versions/latest/sdk/view-pager/)
     react-native-awesome-slider ✅ (https://github.com/alantoa/react-native-awesome-slider)
-    
-    react-native-logs
-    expo-blur
+    expo-blob ✅
+    expo-haptics ✅
+    expo-blur ✅
+    expo-linear-gradient ✅
+    @react-native-segmented-control/segmented-control ✅
+    @tanstack/react-query ✅
+        - @tanstack/eslint-plugin-query ☑️
+    browser-id3-writer ✅
+:testing
+    jest ☑️
+    ts-jest ☑️
+    @jest/globals ☑️
+    eslint-plugin-jest ☑️
+:formatting
+    prettier 
+    eslint-config-prettier 
+    eslint-plugin-prettier

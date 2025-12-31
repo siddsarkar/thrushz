@@ -26,7 +26,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -41,7 +41,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -58,7 +58,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -75,7 +75,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       expect(response).toBeDefined();
 
       const PaginatedSongsSchema = JiosaavnPaginatedResponseSchema(
-        JiosaavnApiSongSchema,
+        JiosaavnApiSongSchema
       );
       const result = PaginatedSongsSchema.safeParse(response);
       if (!result.success) {
@@ -95,13 +95,13 @@ describe('JiosaavnApiClient Integration Tests', () => {
 
       // For search results, albums are mini objects
       const PaginatedAlbumsSchema = JiosaavnPaginatedResponseSchema(
-        JiosaavnApiItemSchema,
+        JiosaavnApiItemSchema
       );
       const result = PaginatedAlbumsSchema.safeParse(response);
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -118,13 +118,13 @@ describe('JiosaavnApiClient Integration Tests', () => {
 
       // For search results, playlists are mini objects
       const PaginatedPlaylistsSchema = JiosaavnPaginatedResponseSchema(
-        JiosaavnApiItemSchema,
+        JiosaavnApiItemSchema
       );
       const result = PaginatedPlaylistsSchema.safeParse(response);
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -141,13 +141,13 @@ describe('JiosaavnApiClient Integration Tests', () => {
 
       // For search results, artists are mini objects
       const PaginatedArtistsSchema = JiosaavnPaginatedResponseSchema(
-        JiosaavnApiItemSchema,
+        JiosaavnApiItemSchema
       );
       const result = PaginatedArtistsSchema.safeParse(response);
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -183,7 +183,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
         if (!result.success) {
           console.error(
             'Validation errors:',
-            JSON.stringify(result.error.issues, null, 2),
+            JSON.stringify(result.error.issues, null, 2)
           );
         }
         expect(result.success).toBe(true);
@@ -237,7 +237,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
         if (!result.success) {
           console.error(
             'Validation errors:',
-            JSON.stringify(result.error.issues, null, 2),
+            JSON.stringify(result.error.issues, null, 2)
           );
         }
         expect(result.success).toBe(true);
@@ -274,7 +274,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -310,7 +310,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -349,7 +349,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);
@@ -381,7 +381,7 @@ describe('JiosaavnApiClient Integration Tests', () => {
       if (!result.success) {
         console.error(
           'Validation errors:',
-          JSON.stringify(result.error.issues, null, 2),
+          JSON.stringify(result.error.issues, null, 2)
         );
       }
       expect(result.success).toBe(true);

@@ -5,10 +5,12 @@
   "private": true,
   "scripts": {
     "android": "expo start --android",
+    "format": "prettier --write .",
     "lint": "expo lint",
     "sql": "drizzle-kit generate",
     "start": "expo start",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -73,7 +75,11 @@
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.12.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "jest": "^30.2.0",
+    "prettier": "^3.7.4",
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   }

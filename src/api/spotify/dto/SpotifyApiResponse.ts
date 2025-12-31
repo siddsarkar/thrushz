@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const SpotifyApiResponseSchema = <T extends z.ZodTypeAny>(
-  itemSchema: T,
+  itemSchema: T
 ) =>
   z.object({
     href: z.string(),
