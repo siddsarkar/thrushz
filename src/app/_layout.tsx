@@ -10,7 +10,6 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import {
@@ -26,9 +25,8 @@ import TrackPlayer from 'react-native-track-player';
 import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
 import { OverlayLoader } from '@/components/ui/OverlayLoader';
 import { OverlayLoaderProvider } from '@/contexts/OverlayLoaderContext';
-import { db } from '@/db';
-import migrations from '@/drizzle/migrations';
 import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
+import { useDbInit } from '@/hooks/useDbInit';
 import { PlaybackService } from '@/services/playback/PlaybackService';
 import { ThemeProvider } from '@/theme';
 import { useTheme } from '@/theme/hooks/useTheme';
@@ -72,10 +70,7 @@ function Inner() {
   } = useTheme();
 
   const isPlayerReady = useSetupPlayer();
-  const { success: migrationsSuccess, error: migrationsError } = useMigrations(
-    db,
-    migrations
-  );
+  const isDbReady = useDbInit();
 
   useEffect(() => {
     function deepLinkHandler(data: { url: string }) {
@@ -115,17 +110,7 @@ function Inner() {
     );
   }
 
-  if (migrationsError) {
-    return (
-      <View>
-        <Text style={{ color: colors.text }}>
-          Migration error: {migrationsError.message}
-        </Text>
-      </View>
-    );
-  }
-
-  if (!migrationsSuccess) {
+  if (!isDbReady) {
     return (
       <View>
         <Text style={{ color: colors.text }}>Migration is in progress...</Text>

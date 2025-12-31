@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
 import { jiosaavnApi, JiosaavnApiSong } from '@/api';
@@ -76,13 +77,9 @@ export default function SongSearchScreen() {
       enablePullToRefresh={true}
       flatListProps={{
         showsVerticalScrollIndicator: false,
-        contentContainerStyle: {
-          gap: 10,
-        },
-        style: {
-          flex: 1,
-          padding: 16,
-        },
+        contentContainerStyle: { gap: 10 },
+        style: { flex: 1, padding: 16 },
+        ListFooterComponent: () => <View style={{ height: 150 }} />,
       }}
       enableLoadMore={true}
     />

@@ -3,6 +3,7 @@ import {
   BottomSheetBackdropProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet';
+import { LinearGradient } from 'expo-linear-gradient';
 import { TabList, Tabs, TabSlot, TabTrigger } from 'expo-router/ui';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
@@ -81,13 +82,25 @@ const TabLayout = withModalProvider(() => {
       </View>
 
       {/* A custom tab bar */}
-      <View style={{ paddingBottom: insets.bottom }}>
+      <View
+        style={{
+          // paddingBottom: insets.bottom,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+        }}
+      >
         <MiniPlayer track={track} onPress={handlePresentPress} />
-        <View
+        <LinearGradient
+          colors={['transparent', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 1)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
           style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly',
             alignItems: 'center',
+            paddingBottom: insets.bottom,
           }}
         >
           <TabTrigger name="home" asChild>
@@ -96,10 +109,13 @@ const TabLayout = withModalProvider(() => {
           <TabTrigger name="search" asChild>
             <TabButton icon="search" />
           </TabTrigger>
-          <TabTrigger name="library" asChild>
-            <TabButton icon="book" />
+          <TabTrigger name="search" asChild>
+            <TabButton icon="list-sharp" />
           </TabTrigger>
-        </View>
+          <TabTrigger name="library" asChild>
+            <TabButton icon="folder" />
+          </TabTrigger>
+        </LinearGradient>
       </View>
 
       <TabList style={{ display: 'none' }}>

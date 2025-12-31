@@ -3,6 +3,8 @@ import * as SQLite from 'expo-sqlite';
 
 import * as schema from './schema';
 
+export const LIKED_SONGS_PLAYLIST_ID = 'liked-songs';
+
 export const expoSqliteDb = SQLite.openDatabaseSync('db.db', {
   enableChangeListener: true,
 });

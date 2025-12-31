@@ -11,7 +11,15 @@ import {
   useThemeTypography,
 } from '@/theme/hooks/useTheme';
 
-export const TrackInfo = ({ track }: { track?: Track }) => {
+export const TrackInfo = ({
+  track,
+  isFavorite,
+  toggleFavorite,
+}: {
+  track?: Track;
+  isFavorite: boolean;
+  toggleFavorite: () => void;
+}) => {
   const colors = useThemeColors();
   const shadows = useThemeShadows();
   const typography = useThemeTypography();
@@ -51,7 +59,12 @@ export const TrackInfo = ({ track }: { track?: Track }) => {
             {decode(track?.artist || '')}
           </Text>
         </View>
-        <Ionicons name="bookmark" size={30} color={colors.text} />
+        <Ionicons
+          name={isFavorite ? 'bookmark' : 'bookmark-outline'}
+          size={30}
+          color={colors.text}
+          onPress={toggleFavorite}
+        />
       </View>
     </View>
   );

@@ -14,6 +14,7 @@ export type ListItemProps = {
   onLongPress?: () => void;
   EndElement?: React.ReactNode;
   isPlayable?: boolean;
+  isPlaying?: boolean;
 };
 
 export function ListItem(props: ListItemProps) {
@@ -27,6 +28,7 @@ export function ListItem(props: ListItemProps) {
     onLongPress,
     EndElement,
     isPlayable = true,
+    isPlaying = false,
   } = props;
 
   const colors = useThemeColors();
@@ -51,7 +53,10 @@ export function ListItem(props: ListItemProps) {
       />
       <View style={{ flex: 1 }}>
         <Text
-          style={[typography.body, { color: colors.text }]}
+          style={[
+            typography.body,
+            { color: isPlaying ? colors.accent : colors.text },
+          ]}
           numberOfLines={numberOfLinesTitle}
         >
           {decode(title)}

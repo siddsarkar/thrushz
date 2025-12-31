@@ -16,7 +16,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { jiosaavnApi } from '@/api/jiosaavn';
 import type { JiosaavnApiSong } from '@/api/jiosaavn/models/Song';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { db } from '@/db';
 import { playlistsSongsTable, playlistsTable } from '@/db/schema';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
@@ -52,10 +51,14 @@ function ListItemButton({
 
 export function AddToPlaylistSheet({
   trackId,
+  playlistId,
   onCreatePlaylistPress,
+  onRemoveFromPlaylistPress,
 }: {
   trackId: string | null;
+  playlistId?: string | null;
   onCreatePlaylistPress?: () => void;
+  onRemoveFromPlaylistPress?: () => void;
 }) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
@@ -105,26 +108,32 @@ export function AddToPlaylistSheet({
   }, [trackId]);
 
   const toggleItemInPlaylist = useCallback(
-    (playlistId: string) => {
+    (pid: string) => {
       if (!trackId) return;
       const isInPlaylist = playlistsSongs?.some(
-        (song) => song.playlistId === playlistId
+        (song) => song.playlistId === pid
       );
       if (isInPlaylist) {
+        if (pid === playlistId) {
+          onRemoveFromPlaylistPress?.();
+          return;
+        }
+
         db.delete(playlistsSongsTable)
           .where(
             and(
-              eq(playlistsSongsTable.playlistId, playlistId),
+              eq(playlistsSongsTable.playlistId, pid),
               eq(playlistsSongsTable.songId, trackId)
             )
           )
           .then(() => {
             console.log('playlist item removed');
+            onRemoveFromPlaylistPress?.();
           });
       } else {
         db.insert(playlistsSongsTable)
           .values({
-            playlistId,
+            playlistId: pid,
             songId: trackId,
           })
           .then(() => {
@@ -132,7 +141,7 @@ export function AddToPlaylistSheet({
           });
       }
     },
-    [trackId, playlistsSongs]
+    [trackId, playlistsSongs, onRemoveFromPlaylistPress, playlistId]
   );
 
   const primaryArtists =
@@ -158,8 +167,6 @@ export function AddToPlaylistSheet({
           minHeight: windowHeight - insets.bottom - insets.top,
         }}
       >
-        {loading && <LoadingIndicator />}
-
         {error && !loading && (
           <View style={styles.errorContainer}>
             <ErrorIndicator />

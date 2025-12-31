@@ -1,11 +1,15 @@
+import Icon from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { decode } from 'html-entities';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Track, useProgress } from 'react-native-track-player';
+import TrackPlayer, {
+  Track,
+  useIsPlaying,
+  useProgress,
+} from 'react-native-track-player';
 
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
-
-import { PlayPauseButton } from './PlayPauseButton';
+import { withOpacity } from '@/utils/color';
 
 export function MiniPlayer({
   track,
@@ -17,6 +21,7 @@ export function MiniPlayer({
   const typography = useThemeTypography();
   const colors = useThemeColors();
   const { position, duration } = useProgress();
+  const { playing, bufferingDuringPlay } = useIsPlaying();
   const progress = position / duration;
   // @ts-expect-error - track.artwork is not typed
   const imageUri = track?.artwork?.uri || track?.artwork;
@@ -27,8 +32,8 @@ export function MiniPlayer({
         style={{
           position: 'absolute',
           bottom: 0,
-          left: 16,
-          right: 16,
+          left: 8,
+          right: 8,
           height: 2,
           backgroundColor: colors.textMuted,
         }}
@@ -53,7 +58,10 @@ export function MiniPlayer({
             {decode(track?.title)}
           </Text>
           <Text
-            style={[typography.caption, { color: colors.textSecondary }]}
+            style={[
+              typography.caption,
+              { color: withOpacity(colors.onPrimary, 0.7) },
+            ]}
             numberOfLines={1}
           >
             {decode(track?.artist)}
@@ -61,7 +69,36 @@ export function MiniPlayer({
         </View>
       </Pressable>
       <View style={styles.controls}>
-        <PlayPauseButton size={28} />
+        <Pressable onPress={playing ? TrackPlayer.pause : TrackPlayer.play}>
+          <Icon
+            name={playing ? 'add-circle-outline' : 'checkmark-circle'}
+            size={28}
+            color={colors.text}
+            iconStyle="solid"
+          />
+        </Pressable>
+        {bufferingDuringPlay ? (
+          <View style={styles.button}>
+            <Icon
+              name="play-circle"
+              size={28}
+              color={colors.textMuted}
+              iconStyle="solid"
+            />
+          </View>
+        ) : (
+          <Pressable
+            onPress={playing ? TrackPlayer.pause : TrackPlayer.play}
+            style={styles.button}
+          >
+            <Icon
+              name={playing ? 'pause' : 'play'}
+              size={28}
+              color={colors.text}
+              iconStyle="solid"
+            />
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -72,27 +109,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
+    marginHorizontal: 8,
+    borderRadius: 6,
   },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     flex: 1,
-    paddingLeft: 16,
+    paddingLeft: 8,
   },
   artworkContainer: {
-    width: 50,
-    height: 60,
+    width: 42,
+    height: 55,
     justifyContent: 'center',
   },
   artwork: {
     width: '100%',
     aspectRatio: 1,
+    borderRadius: 4,
   },
   info: {
     flex: 1,
   },
   controls: {
-    gap: 10,
+    gap: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  button: {
+    padding: 8,
+    paddingRight: 16,
   },
 });

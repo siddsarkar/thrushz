@@ -271,7 +271,7 @@ function VirtualizedPaginatedList<T>({
         <Text style={[styles.emptyText, { color: colors.text }]}>
           {searchQuery
             ? `No results found for "${searchQuery}"`
-            : 'No data available'}
+            : 'No results found'}
         </Text>
       </View>
     );
@@ -368,6 +368,7 @@ function VirtualizedPaginatedList<T>({
         initialNumToRender={10}
         windowSize={10}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         {...flatListProps}
       />
     </View>

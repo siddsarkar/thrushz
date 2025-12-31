@@ -1,14 +1,14 @@
 import Icon from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
 
 import { PlaybackError } from '@/components/player/PlaybackError';
+import { PlayerRepeatModeToggle } from '@/components/player/PlayerRepeatModeToggle';
 import { PlayPauseButton } from '@/components/player/PlayPauseButton';
+import { Spacer } from '@/components/player/Spacer';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-
-import { PlayerRepeatModeToggle } from './PlayerRepeatModeToggle';
-import { Spacer } from './Spacer';
 
 const performSkipToNext = () => TrackPlayer.skipToNext();
 const performSkipToPrevious = () => TrackPlayer.skipToPrevious();
@@ -39,7 +39,14 @@ export const PlayerControls: React.FC = () => {
           />
         </TouchableWithoutFeedback>
         <Spacer mode="expand" />
-        <Icon name="shuffle" size={30} color={colors.text} iconStyle="solid" />
+        <TouchableWithoutFeedback onPress={() => router.push('/queue')}>
+          <Icon
+            name="list-outline"
+            size={30}
+            color={colors.text}
+            iconStyle="solid"
+          />
+        </TouchableWithoutFeedback>
       </View>
       <PlaybackError
         error={'error' in playback ? playback.error.message : undefined}

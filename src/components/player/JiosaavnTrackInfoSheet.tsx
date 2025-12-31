@@ -1,20 +1,23 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { and, eq } from 'drizzle-orm';
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { decode } from 'html-entities';
 import { useEffect, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { jiosaavnApi } from '@/api/jiosaavn';
 import type { JiosaavnApiSong } from '@/api/jiosaavn/models/Song';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { db, LIKED_SONGS_PLAYLIST_ID } from '@/db';
+import { playlistsSongsTable } from '@/db/schema';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 import { formatDuration } from '@/utils/format/duration';
 import { formatNumber } from '@/utils/format/number';
@@ -50,11 +53,15 @@ function ListItemButton({
 export function JiosaavnTrackInfoSheet({
   trackId,
   onAddToPlaylistPress,
+  onRemoveFromPlaylistPress,
   onDownloadPress,
+  onFavoritePress,
 }: {
   trackId: string | null;
   onAddToPlaylistPress?: () => void;
+  onRemoveFromPlaylistPress?: () => void;
   onDownloadPress?: () => void;
+  onFavoritePress?: () => void;
 }) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
@@ -65,6 +72,18 @@ export function JiosaavnTrackInfoSheet({
   const [track, setTrack] = useState<JiosaavnApiSong | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: playlistSong } = useLiveQuery(
+    db
+      .select()
+      .from(playlistsSongsTable)
+      .where(
+        and(
+          eq(playlistsSongsTable.playlistId, LIKED_SONGS_PLAYLIST_ID),
+          eq(playlistsSongsTable.songId, trackId || '')
+        )
+      )
+  );
 
   useEffect(() => {
     if (!trackId) {
@@ -107,6 +126,8 @@ export function JiosaavnTrackInfoSheet({
     ? `${primaryArtists} (feat. ${featuredArtists})`
     : primaryArtists;
 
+  const isFav = playlistSong && playlistSong.length > 0;
+
   return (
     <BottomSheetScrollView
       showsVerticalScrollIndicator={false}
@@ -118,8 +139,6 @@ export function JiosaavnTrackInfoSheet({
           minHeight: windowHeight - insets.bottom - insets.top,
         }}
       >
-        {loading && <LoadingIndicator />}
-
         {error && !loading && (
           <View style={styles.errorContainer}>
             <ErrorIndicator />
@@ -134,11 +153,37 @@ export function JiosaavnTrackInfoSheet({
           </View>
         )}
 
+        {onRemoveFromPlaylistPress && (
+          <ListItemButton
+            Icon={
+              <MaterialIcons
+                name="playlist-remove"
+                size={24}
+                color={colors.text}
+              />
+            }
+            title="Remove from playlist"
+            onPress={onRemoveFromPlaylistPress}
+          />
+        )}
+
+        <ListItemButton
+          Icon={
+            <MaterialIcons
+              name={isFav ? 'favorite' : 'favorite-border'}
+              size={24}
+              color={colors.text}
+            />
+          }
+          title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+          onPress={onFavoritePress}
+        />
+
         <ListItemButton
           Icon={
             <MaterialIcons name="playlist-add" size={24} color={colors.text} />
           }
-          title="Add to playlist"
+          title="Add to other playlist"
           onPress={onAddToPlaylistPress}
         />
         <ListItemButton
@@ -241,10 +286,12 @@ function InfoRow({
 }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
+      <Text
+        style={[typography.caption, { color: colors.textMuted, flex: 0.3 }]}
+      >
         {label}:
       </Text>
-      <Text style={[typography.body, { color: colors.text, flex: 1 }]}>
+      <Text style={[typography.body, { color: colors.text, flex: 0.7 }]}>
         {decode(value)}
       </Text>
     </View>

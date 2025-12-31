@@ -2,8 +2,15 @@ import Icon from '@expo/vector-icons/Ionicons';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Image } from 'expo-image';
 import { Link, router } from 'expo-router';
-import { forwardRef, Fragment, Ref, Suspense, use } from 'react';
-import { FlatList, Pressable, SectionList, Text, View } from 'react-native';
+import { forwardRef, Fragment, Ref, Suspense, use, useCallback } from 'react';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  SectionList,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { jiosaavnApi, JiosaavnApiPlaylistMini } from '@/api/jiosaavn';
@@ -77,9 +84,17 @@ const PlaylistItemDisplay = forwardRef<View, PlaylistItemDisplayProps>(
           }}
         />
         <View style={{ flex: 1 }}>
-          <Text style={[typography.body, { color: colors.text }]}>{title}</Text>
+          <Text
+            numberOfLines={2}
+            style={[typography.body, { color: colors.text }]}
+          >
+            {title}
+          </Text>
           {description && (
-            <Text style={[typography.caption, { color: colors.textMuted }]}>
+            <Text
+              numberOfLines={1}
+              style={[typography.caption, { color: colors.textMuted }]}
+            >
               {description}
             </Text>
           )}
@@ -108,6 +123,10 @@ const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
           gap: 10,
           // padding: 5,
           backgroundColor: colors.border,
+          maxWidth: '48%',
+          borderRadius: 4,
+          overflow: 'hidden',
+          paddingRight: 5,
         }}
       >
         <ListItem
@@ -130,7 +149,11 @@ const MyPlaylistsPlaylistDisplay = () => {
       data={playlists}
       numColumns={2}
       contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}
-      columnWrapperStyle={{ gap: 10, paddingHorizontal: 16 }}
+      columnWrapperStyle={{
+        gap: 10,
+        paddingHorizontal: 16,
+        // justifyContent: 'space-between',
+      }}
       style={{ gap: 10 }}
       renderItem={({ item }) => (
         <Link
@@ -222,10 +245,13 @@ type Section = {
 const PlaylistListDisplay = ({
   jiosaavnTopPlaylistsPromise,
   spotifyUserPlaylistsPromise,
+  refresh,
 }: {
   jiosaavnTopPlaylistsPromise: Promise<JiosaavnApiPlaylistMini[]>;
   spotifyUserPlaylistsPromise: Promise<SpotifyPlaylist[]>;
+  refresh: () => void;
 }) => {
+  const { user } = useSession();
   const jiosaavnTopPlaylists = use(jiosaavnTopPlaylistsPromise);
   const spotifyUserPlaylists = use(spotifyUserPlaylistsPromise);
 
@@ -237,6 +263,7 @@ const PlaylistListDisplay = ({
     <SectionList
       style={{ flex: 1, paddingTop: insets.top }}
       contentContainerStyle={{ paddingBottom: 60 }}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
       sections={
         [
           {
@@ -271,7 +298,30 @@ const PlaylistListDisplay = ({
             alignItems: 'center',
           }}
         >
-          <Text style={[typography.h1, { color: colors.text }]}>Home</Text>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <Image
+              source={{ uri: user?.images[0].url || '' }}
+              style={{ width: 35, height: 35, borderRadius: 25 }}
+            />
+            <View>
+              <Text
+                numberOfLines={1}
+                style={[typography.h4, { color: colors.text }]}
+              >
+                Hola! {user?.display_name}
+              </Text>
+              {/* <Text style={[typography.body, { color: colors.textMuted }]}>
+                Your playlists and ambient sounds
+              </Text> */}
+            </View>
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
             <Pressable onPress={() => router.push('/playlist/create')}>
               <Icon name="add" size={24} color={colors.text} />
@@ -319,6 +369,7 @@ const PlaylistListDisplay = ({
           )}
         </View>
       )}
+      ListFooterComponent={<View style={{ height: 150 }} />}
     />
   );
 };
@@ -330,6 +381,14 @@ export default function HomeScreen() {
     user?.id || '',
     token || ''
   );
+  const refresh = useCallback(() => {
+    Promise.all([
+      fetchJiosaavnTopPlaylists(),
+      fetchSpotifyUserPlaylists(user?.id || '', token || ''),
+    ]).then(() => {
+      console.log('Refreshed!');
+    });
+  }, [user?.id, token]);
 
   return (
     <ErrorBoundary fallback={<ErrorIndicator />}>
@@ -337,6 +396,7 @@ export default function HomeScreen() {
         <PlaylistListDisplay
           jiosaavnTopPlaylistsPromise={jiosaavnTopPlaylists}
           spotifyUserPlaylistsPromise={spotifyUserPlaylists}
+          refresh={refresh}
         />
       </Suspense>
     </ErrorBoundary>

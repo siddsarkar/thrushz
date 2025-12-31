@@ -152,12 +152,12 @@ const PlaylistDisplay = ({
     dismissAll();
     addToPlaylistSheetRef.current?.present();
     setIsAddToPlaylistSheetOpen(true);
-  }, []);
+  }, [dismissAll]);
 
   const handleCreatePlaylistPress = useCallback(() => {
     dismissAll();
     router.push(`/playlist/create`);
-  }, []);
+  }, [dismissAll]);
 
   // sheet callbacks
   const handleDismissTrackInfoSheet = useCallback(() => {

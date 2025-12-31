@@ -1,9 +1,9 @@
 import FontAwesome5 from '@expo/vector-icons/Ionicons';
-// import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useActiveTrack } from 'react-native-track-player';
 
 import { ListItem } from '@/components/ui/ListItem';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
@@ -15,6 +15,7 @@ export type ListItemType = {
   description?: string;
   image?: string;
   duration?: number;
+  // isPlaying?: boolean;
   isPlayable?: boolean;
   [key: string]: unknown;
 };
@@ -30,14 +31,16 @@ export type ListLayoutProps = {
   onItemLongPress?: (item: ListItemType) => void;
   moreIcon?: MoreIcon;
   onMorePress?: () => void;
+  footer?: React.ReactElement | null;
 };
 
-const HEADER_HEIGHT = 350;
+const HEADER_HEIGHT = 400;
 const MIN_HEADER_HEIGHT = 90;
 
 const HEADER_HEIGHT_DIFF = HEADER_HEIGHT - MIN_HEADER_HEIGHT;
 
 export function ListLayout(props: ListLayoutProps) {
+  const activeSong = useActiveTrack();
   const colors = useThemeColors();
   const typography = useThemeTypography();
   const insets = useSafeAreaInsets();
@@ -65,14 +68,16 @@ export function ListLayout(props: ListLayoutProps) {
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
+
+  // translates the title to the right
   const translateTitle = scrollY.interpolate({
-    inputRange: [200, 240],
+    inputRange: [250, 290],
     outputRange: [0, 40],
     extrapolate: 'clamp',
   });
 
   const scaleTitle = scrollY.interpolate({
-    inputRange: [200, 240],
+    inputRange: [250, 290],
     outputRange: [1, 0.8],
     extrapolate: 'clamp',
   });
@@ -98,6 +103,7 @@ export function ListLayout(props: ListLayoutProps) {
       >
         <FontAwesome5 name="arrow-back" size={20} color={colors.text} />
       </Pressable>
+
       {props.onMorePress && (
         <View
           style={{
@@ -108,13 +114,23 @@ export function ListLayout(props: ListLayoutProps) {
             zIndex: 2,
             height: MIN_HEADER_HEIGHT,
             aspectRatio: 1,
-            justifyContent: 'center',
-            alignItems: 'flex-end',
-            // backgroundColor: 'red',
+            justifyContent: 'flex-end',
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            // gap: 10,
+            paddingHorizontal: 20,
+            paddingLeft: 40,
+            // backgroundColor: colors.background,
           }}
         >
           <Pressable
-            style={{ paddingHorizontal: 20 }}
+            style={{
+              height: MIN_HEADER_HEIGHT - insets.top,
+              width: 40,
+              // backgroundColor: 'blue',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
             onPress={props.onMorePress}
           >
             <FontAwesome5
@@ -148,8 +164,8 @@ export function ListLayout(props: ListLayoutProps) {
 
         <Animated.Text
           style={[
-            typography.h1,
-            styles.headerTitle,
+            typography.h3,
+            styles.headerLeftAlignedTitle,
             { color: colors.text },
             { opacity: opacityTitle },
             {
@@ -164,11 +180,11 @@ export function ListLayout(props: ListLayoutProps) {
           {props.title}
         </Animated.Text>
 
-        <View>
+        <View style={{ paddingTop: 10 }}>
           <Animated.Text
             style={[
-              typography.h1,
-              styles.headerLeftAlignedTitle,
+              typography.h3,
+              styles.headerTitle,
               { color: colors.text },
               { opacity: opacityImage },
             ]}
@@ -202,6 +218,7 @@ export function ListLayout(props: ListLayoutProps) {
             title={item.title}
             numberOfLinesTitle={2}
             isPlayable={item.isPlayable}
+            isPlaying={activeSong?.id === item.id}
             description={item.description}
             numberOfLinesDescription={1}
             image={item.image}
@@ -216,6 +233,7 @@ export function ListLayout(props: ListLayoutProps) {
             }
           />
         )}
+        ListFooterComponent={props.footer ?? <View style={{ height: 150 }} />}
       />
     </View>
   );
@@ -244,26 +262,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 'auto',
   },
   headerTitle: {
-    fontSize: 26,
-    lineHeight: 34,
-    fontWeight: 'bold',
+    marginHorizontal: 'auto',
+    textAlign: 'center',
+  },
+  headerLeftAlignedTitle: {
     marginRight: 'auto',
     transformOrigin: 'left',
     position: 'absolute',
     bottom: 12,
     left: 20,
   },
-  headerLeftAlignedTitle: {
-    fontSize: 26,
-    lineHeight: 34,
-    fontWeight: 'bold',
-    marginHorizontal: 'auto',
-    textAlign: 'center',
-  },
   subtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
     textAlign: 'center',
     marginHorizontal: 'auto',
   },

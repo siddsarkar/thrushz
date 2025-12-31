@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { Suspense, use } from 'react';
+import { ToastAndroid } from 'react-native';
 
 import {
   jiosaavnApi,
@@ -231,13 +232,13 @@ const SpotifyPlaylistDisplay = ({
 
     console.log('Songs added to the playlist');
 
-    // router.replace(
-    //   {
-    //     pathname: '/local/playlist/[id]',
-    //     params: { id: id },
-    //   },
-    //   { relativeToDirectory: true }
-    // );
+    router.replace(
+      {
+        pathname: '/playlist/[id]',
+        params: { id: id },
+      },
+      { relativeToDirectory: true }
+    );
   };
 
   const handleImportPlaylist = async (playlistIdOrUrl: string) => {
@@ -282,10 +283,7 @@ const SpotifyPlaylistDisplay = ({
     }
 
     if (success) {
-      router.replace({
-        pathname: '/playlist/[id]',
-        params: { id: id },
-      });
+      ToastAndroid.show('Playlist imported successfully', ToastAndroid.SHORT);
     }
   };
 
