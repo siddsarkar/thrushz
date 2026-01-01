@@ -121,6 +121,7 @@ const PlaylistDisplay = ({
           artwork: createImageLinks(song.image || '')[0]?.url || '',
           duration: Number(song.more_info.duration || 0),
           id: song.id,
+          canFavorite: true,
         });
         await TrackPlayer.play();
       }
@@ -136,15 +137,20 @@ const PlaylistDisplay = ({
 
   const handleDownloadPress = useCallback(() => {
     if (!selectedTrackId) return;
-    setDownloadSongUrl(
+
+    let url =
       createDownloadLinks(
         playlist.list.find((s) => s.id === selectedTrackId)?.more_info
           .encrypted_media_url || ''
-      )[0]?.url || null
-    );
+      )[0]?.url || null;
+    if (!url) return;
 
     setTimeout(() => {
       trackInfoSheetRef.current?.dismiss();
+      router.push({
+        pathname: '/downloads',
+        params: { url },
+      });
     }, 100);
   }, [selectedTrackId, playlist.list]);
 

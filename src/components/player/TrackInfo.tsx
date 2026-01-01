@@ -59,12 +59,14 @@ export const TrackInfo = ({
             {decode(track?.artist || '')}
           </Text>
         </View>
-        <Ionicons
-          name={isFavorite ? 'bookmark' : 'bookmark-outline'}
-          size={30}
-          color={colors.text}
-          onPress={toggleFavorite}
-        />
+        {track?.canFavorite && (
+          <Ionicons
+            name={isFavorite ? 'checkmark-circle' : 'add-circle-outline'}
+            size={30}
+            color={colors.text}
+            onPress={toggleFavorite}
+          />
+        )}
       </View>
     </View>
   );

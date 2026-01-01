@@ -11,27 +11,27 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
-import {
-  ActivityIndicator,
-  Linking,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { useCallback, useEffect, useState } from 'react';
+import { Linking, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TrackPlayer from 'react-native-track-player';
 
 import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
+import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { OverlayLoader } from '@/components/ui/OverlayLoader';
 import { OverlayLoaderProvider } from '@/contexts/OverlayLoaderContext';
-import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
 import { useDbInit } from '@/hooks/useDbInit';
 import { PlaybackService } from '@/services/playback/PlaybackService';
+import { QueueInitialTracksService } from '@/services/playback/QueueInitialTracksService';
+import { SetupService } from '@/services/playback/SetupService';
 import { ThemeProvider } from '@/theme';
 import { useTheme } from '@/theme/hooks/useTheme';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
+
+SplashScreen.setOptions({ duration: 1000, fade: true });
+SplashScreen.preventAutoHideAsync();
 
 Sentry.init({
   dsn: 'https://ee982592402fa1ed01fc7c47ada8bdc0@o4506185854156800.ingest.us.sentry.io/4509555266486272',
@@ -41,7 +41,7 @@ Sentry.init({
   sendDefaultPii: true,
 
   // Enable Logs
-  enableLogs: true,
+  enableLogs: false,
 
   // Configure Session Replay
   replaysSessionSampleRate: 0.1,
@@ -103,19 +103,11 @@ function Inner() {
   };
 
   if (!isPlayerReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator />
-      </View>
-    );
+    return <LoadingIndicator text="Initializing player..." />;
   }
 
   if (!isDbReady) {
-    return (
-      <View>
-        <Text style={{ color: colors.text }}>Migration is in progress...</Text>
-      </View>
-    );
+    return <LoadingIndicator text="Initializing database..." />;
   }
 
   return (
@@ -134,8 +126,14 @@ function Inner() {
 function RootLayout() {
   const isSystemInDark = useColorScheme() === 'dark';
 
+  const onLayout = useCallback(() => {
+    SplashScreen.hideAsync().catch((error) => {
+      console.error(error);
+    });
+  }, []);
+
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView onLayout={onLayout}>
       <QueryClientProvider client={queryClient}>
         <AuthSessionProvider>
           <ThemeProvider systemSchemeIsDark={isSystemInDark}>
@@ -145,6 +143,28 @@ function RootLayout() {
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
+}
+
+function useSetupPlayer() {
+  const [playerReady, setPlayerReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    let unmounted = false;
+    (async () => {
+      await SetupService();
+      if (unmounted) return;
+      setPlayerReady(true);
+      const queue = await TrackPlayer.getQueue();
+      if (unmounted) return;
+      if (queue.length <= 0) {
+        await QueueInitialTracksService();
+      }
+    })();
+    return () => {
+      unmounted = true;
+    };
+  }, []);
+  return playerReady;
 }
 
 export default Sentry.wrap(RootLayout);

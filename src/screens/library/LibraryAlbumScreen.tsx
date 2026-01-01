@@ -1,8 +1,8 @@
 import { File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { parseBuffer, selectCover } from 'music-metadata';
-import { Suspense, use, useState } from 'react';
-import { Text } from 'react-native';
+import { Suspense, use, useCallback, useState } from 'react';
+import { Text, View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -45,7 +45,7 @@ function AlbumEntry({
       await TrackPlayer.reset();
       await TrackPlayer.add({
         url: file.uri,
-        title: metadata.common.title,
+        title: metadata.common.title || file.name,
         artwork: artwork.uri,
         album: metadata.common.album,
         artist: metadata.common.artist,
@@ -57,48 +57,73 @@ function AlbumEntry({
     }
   };
 
-  const fetchData = async (params: FetchDataParams) => {
-    console.log('fetchData', `p=${params.page} l=${params.limit}`);
-    const albumAssets = await MediaLibrary.getAssetsAsync({
-      album,
-      mediaType: 'audio',
-      first: params.limit,
-      after: after,
-    });
-    setAfter(albumAssets.endCursor);
-    return { data: albumAssets.assets, hasMore: albumAssets.hasNextPage };
-  };
+  const fetchData = useCallback(
+    async (params: FetchDataParams) => {
+      const { page, limit, searchQuery } = params;
 
-  const renderItem = ({ item }: { item: MediaLibrary.Asset }) => {
-    return (
-      <ListItem
-        title={item.filename}
-        numberOfLinesTitle={1}
-        EndElement={
-          <Text style={[typography.caption, { color: colors.textMuted }]}>
-            {formatDuration(Math.floor(item.duration || 0))}
-          </Text>
-        }
-        onPress={() => playAudio(item)}
-      />
-    );
-  };
-  const keyExtractor = (item: MediaLibrary.Asset) => item.id;
+      const albumAssets = await MediaLibrary.getAssetsAsync({
+        album,
+        mediaType: 'audio',
+        first: limit,
+        after: page === 1 ? undefined : after,
+      });
+
+      const regex = new RegExp(searchQuery?.toLowerCase() || '', 'i');
+      if (searchQuery) {
+        const filteredAssets = albumAssets.assets.filter((a) =>
+          regex.test(a.filename.toLowerCase())
+        );
+        setAfter(undefined);
+        return {
+          data: filteredAssets,
+          hasMore: false,
+        };
+      }
+
+      setAfter(albumAssets.endCursor);
+      return {
+        data: albumAssets.assets,
+        hasMore: albumAssets.hasNextPage,
+        total: albumAssets.totalCount,
+      };
+    },
+    [album, after]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: MediaLibrary.Asset }) => {
+      return (
+        <ListItem
+          title={item.filename}
+          numberOfLinesTitle={1}
+          EndElement={
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              {formatDuration(Math.floor(item.duration || 0))}
+            </Text>
+          }
+          onPress={() => playAudio(item)}
+        />
+      );
+    },
+    [colors, typography]
+  );
+
+  const keyExtractor = useCallback((item: MediaLibrary.Asset) => item.id, []);
 
   return (
-    <VirtualizedPaginatedList
-      type="album"
+    <VirtualizedPaginatedList<MediaLibrary.Asset>
+      title="item"
       fetchData={fetchData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       itemsPerPage={20}
       enablePullToRefresh={false}
-      initialSearchQuery=""
       enableLoadMore={true}
       loadingColor={colors.primary}
       flatListProps={{
         style: { flex: 1, padding: 16 },
         contentContainerStyle: { gap: 10 },
+        ListFooterComponent: () => <View style={{ height: 150 }} />,
       }}
     />
   );

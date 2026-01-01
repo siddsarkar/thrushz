@@ -1,3 +1,4 @@
+import { HttpClient, httpClientFactory, IHttpClientFactory } from '@/api/http';
 import type { GetHomepageDataResponse } from '@/api/jiosaavn/dto/GetHomepageDataResponse';
 import type { GetLaunchDataResponse } from '@/api/jiosaavn/dto/GetLaunchDataResponse';
 import type { JiosaavnApiAlbum } from '@/api/jiosaavn/models/Album';
@@ -17,6 +18,16 @@ export class JiosaavnApiClient {
   private readonly ctx = 'web6dot0';
   private readonly format = 'json';
   private readonly marker = '0';
+
+  private readonly httpClient?: HttpClient;
+
+  constructor(clientFactory?: IHttpClientFactory) {
+    if (clientFactory) {
+      this.httpClient = clientFactory.create({
+        baseURL: this.baseUrl,
+      });
+    }
+  }
 
   // ---------- HELPERS ----------
 
@@ -148,7 +159,12 @@ export class JiosaavnApiClient {
 
     const searchParams = new URLSearchParams(params);
     const paramsStr = searchParams.toString();
-    console.log('[JIOSAAVN]', `/api.php?${paramsStr}`);
+
+    if (this.httpClient) {
+      return this.httpClient
+        .get<T>(`/api.php?${paramsStr}`)
+        .then((res) => res.data);
+    }
 
     return fetch(`${this.baseUrl}/api.php?${paramsStr}`).then((res) =>
       res.json()
@@ -156,4 +172,4 @@ export class JiosaavnApiClient {
   }
 }
 
-export const jiosaavnApi = new JiosaavnApiClient();
+export const jiosaavnApi = new JiosaavnApiClient(httpClientFactory);

@@ -392,7 +392,7 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary fallback={<ErrorIndicator />}>
-      <Suspense fallback={<LoadingIndicator />}>
+      <Suspense fallback={<LoadingIndicator text="Loading playlists..." />}>
         <PlaylistListDisplay
           jiosaavnTopPlaylistsPromise={jiosaavnTopPlaylists}
           spotifyUserPlaylistsPromise={spotifyUserPlaylists}

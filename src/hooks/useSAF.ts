@@ -14,9 +14,7 @@ export function useSAF() {
     let isMounted = true;
 
     if (isStoredUriLoading === false) {
-      if (!storedUri) {
-        return;
-      }
+      if (!storedUri) return;
 
       if (isMounted) {
         console.log('Stored URI found:', storedUri);

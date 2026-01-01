@@ -1,40 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
 import { useSharedValue } from 'react-native-reanimated';
-import TrackPlayer from 'react-native-track-player';
 
+import { usePlayerVolume } from '@/hooks/player/usePlayerVolume';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-
-export const useTrackPlayerVolume = () => {
-  const [volume, setVolume] = useState<number | undefined>(undefined);
-
-  const getVolume = useCallback(async () => {
-    const currentVolume = await TrackPlayer.getVolume();
-    setVolume(currentVolume);
-  }, []);
-
-  const updateVolume = useCallback(async (newVolume: number) => {
-    if (newVolume < 0 || newVolume > 1) return;
-
-    setVolume(newVolume);
-
-    await TrackPlayer.setVolume(newVolume);
-  }, []);
-
-  useEffect(() => {
-    getVolume();
-  }, [getVolume]);
-
-  return { volume, updateVolume };
-};
 
 export const PlayerVolumeControls = ({ style }: ViewProps) => {
   const colors = useThemeColors();
   const { textMuted: backgroundColor, text: color, text: colorAccent } = colors;
 
-  const { volume, updateVolume } = useTrackPlayerVolume();
+  const { volume, updateVolume } = usePlayerVolume();
 
   const isSliding = useSharedValue(false);
   const progress = useSharedValue(0);

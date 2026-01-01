@@ -1,3 +1,5 @@
+import { HttpClient, httpClientFactory, IHttpClientFactory } from '@/api/http';
+import { spotifyRequestInterceptor } from '@/api/spotify/auth-interceptor';
 import type { SpotifyApiResponse } from '@/api/spotify/dto';
 import type {
   SpotifyAuthUser,
@@ -10,6 +12,18 @@ import type {
 export class SpotifyApiClient {
   private readonly baseUrl = 'https://api.spotify.com';
 
+  private readonly httpClient?: HttpClient;
+
+  constructor(clientFactory?: IHttpClientFactory) {
+    if (clientFactory) {
+      this.httpClient = clientFactory.create({
+        baseURL: this.baseUrl,
+      });
+
+      this.httpClient.addRequestInterceptor(spotifyRequestInterceptor);
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     params: Record<string, string>,
@@ -17,11 +31,18 @@ export class SpotifyApiClient {
   ): Promise<T> {
     const searchParams = new URLSearchParams(params);
     const paramsStr = searchParams.toString();
-    console.log('[SPOTIFY]', `${endpoint}${paramsStr}`);
+
+    if (this.httpClient) {
+      return this.httpClient
+        .get<T>(`${endpoint}?${paramsStr}`, {
+          headers: options?.headers as Record<string, string>,
+        })
+        .then((res) => res.data);
+    }
 
     return fetch(`${this.baseUrl}${endpoint}?${paramsStr}`, options).then(
       (res) => res.json()
-    ) as Promise<T>;
+    );
   }
 
   async fetchUserPlaylists(
@@ -118,4 +139,4 @@ export class SpotifyApiClient {
   }
 }
 
-export const spotifyApi = new SpotifyApiClient();
+export const spotifyApi = new SpotifyApiClient(httpClientFactory);

@@ -1,13 +1,18 @@
-import { beforeAll, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it, jest } from '@jest/globals';
 import dotenv from 'dotenv';
 
-import { SpotifyApiClient } from '@/api/spotify';
+import { SpotifyApiClient } from '@/api/spotify/client';
 import {
   SpotifyPlaylistDetailsSchema,
   SpotifyPlaylistSchema,
   SpotifyPlaylistTrackSchema,
   type SpotifyPlaylistDetailsWithFields,
 } from '@/api/spotify/models';
+
+// mock the auth interceptor, not needed for tests
+jest.mock('@/api/spotify/auth-interceptor', () => ({
+  spotifyRequestInterceptor: jest.fn(),
+}));
 
 dotenv.config({ path: ['.env.local'] });
 

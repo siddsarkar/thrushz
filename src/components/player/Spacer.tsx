@@ -11,10 +11,15 @@ const SPACER_STYLES = {
   expand: () => ({ flex: 1 }),
 };
 
-export const Spacer: React.FC<{ mode?: SpacerMode; size?: number }> = ({
+export type SpacerProps = {
+  mode?: SpacerMode;
+  size?: number;
+};
+
+export function Spacer({
   mode = 'vertical',
   size = DEFAULT_SPACE,
-}) => {
+}: SpacerProps) {
   const style = SPACER_STYLES[mode](size);
   return <View style={style} />;
-};
+}

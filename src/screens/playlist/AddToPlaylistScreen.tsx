@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { and, eq } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
 import { jiosaavnApi, JiosaavnApiSong } from '@/api/jiosaavn';
@@ -59,6 +59,7 @@ export default function AddToPlaylistScreen({
       artwork: createImageLinks(song.image || '')[0]?.url || '',
       duration: Number(song.more_info.duration || 0),
       id: song.id,
+      canFavorite: true,
     });
     await TrackPlayer.play();
   }, []);
@@ -106,7 +107,15 @@ export default function AddToPlaylistScreen({
       image={item.image}
       onPress={() => onItemPress(item)}
       EndElement={
-        <Pressable onPress={() => toggleItemInPlaylist(item)}>
+        <Pressable
+          onPress={() => toggleItemInPlaylist(item)}
+          style={{
+            height: '100%',
+            width: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           {playlistSongs.some(
             (playlistSong) => playlistSong.songId === item.id
           ) ? (
@@ -125,7 +134,7 @@ export default function AddToPlaylistScreen({
 
   return (
     <VirtualizedPaginatedList<JiosaavnApiSong>
-      type="song"
+      title="song"
       fetchData={fetchSongs}
       renderItem={renderSong}
       keyExtractor={getSongKey}
@@ -134,14 +143,9 @@ export default function AddToPlaylistScreen({
       searchDebounceMs={500}
       enablePullToRefresh={true}
       flatListProps={{
-        showsVerticalScrollIndicator: false,
-        contentContainerStyle: {
-          gap: 10,
-        },
-        style: {
-          flex: 1,
-          padding: 16,
-        },
+        contentContainerStyle: { gap: 10 },
+        style: { flex: 1, padding: 16 },
+        ListFooterComponent: () => <View style={{ height: 150 }} />,
       }}
       enableLoadMore={true}
     />

@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Button, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,15 +17,25 @@ export default function PlaylistCreateScreen() {
   const [playlistName, setPlaylistName] = useState('');
 
   const handleCreatePlaylist = useCallback(() => {
+    let id = uuidv4();
     db.insert(playlistsTable)
       .values({
-        id: uuidv4(),
+        id: id,
         name: playlistName,
         image: null,
         author: user?.id,
       })
       .then((result) => {
         console.log('playlist created', result);
+        if (result.lastInsertRowId) {
+          router.replace(
+            {
+              pathname: '/playlist/[id]',
+              params: { id },
+            },
+            { relativeToDirectory: true }
+          );
+        }
       });
   }, [playlistName, user?.id]);
 

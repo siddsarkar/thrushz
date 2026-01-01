@@ -28,10 +28,8 @@ export async function setStorageItemAsync(key: string, value: string | null) {
 }
 
 export function useStorageState(key: string): UseStateHook<string> {
-  // Public
   const [state, setState] = useAsyncState<string>();
 
-  // Get
   useEffect(() => {
     SecureStore.getItemAsync(key).then((value) => {
       setState(value);
@@ -40,7 +38,6 @@ export function useStorageState(key: string): UseStateHook<string> {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  // Set
   const setValue = useCallback(
     (value: string | null) => {
       setState(value);

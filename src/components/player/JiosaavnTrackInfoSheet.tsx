@@ -56,12 +56,14 @@ export function JiosaavnTrackInfoSheet({
   onRemoveFromPlaylistPress,
   onDownloadPress,
   onFavoritePress,
+  onAddToQueuePress,
 }: {
   trackId: string | null;
   onAddToPlaylistPress?: () => void;
   onRemoveFromPlaylistPress?: () => void;
   onDownloadPress?: () => void;
   onFavoritePress?: () => void;
+  onAddToQueuePress?: () => void;
 }) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
@@ -152,6 +154,12 @@ export function JiosaavnTrackInfoSheet({
             </Text>
           </View>
         )}
+
+        <ListItemButton
+          Icon={<MaterialIcons name="queue" size={24} color={colors.text} />}
+          title="Add to queue"
+          onPress={onAddToQueuePress}
+        />
 
         {onRemoveFromPlaylistPress && (
           <ListItemButton

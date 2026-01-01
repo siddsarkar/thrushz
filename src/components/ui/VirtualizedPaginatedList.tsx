@@ -32,7 +32,7 @@ export interface FetchDataParams {
 }
 
 export interface VirtualizedPaginatedListProps<T> {
-  type: 'song' | 'album' | 'playlist' | 'artist';
+  title: string;
   fetchData: (params: FetchDataParams) => Promise<PaginatedResponse<T>>;
   renderItem: ListRenderItem<T>;
   keyExtractor: (item: T, index: number) => string;
@@ -58,7 +58,7 @@ export interface VirtualizedPaginatedListProps<T> {
 }
 
 function VirtualizedPaginatedList<T>({
-  type,
+  title,
   fetchData,
   renderItem,
   keyExtractor,
@@ -77,7 +77,6 @@ function VirtualizedPaginatedList<T>({
   flatListProps = {},
   enablePullToRefresh = true,
   enableLoadMore = true,
-  loadingColor = 'pink',
 }: VirtualizedPaginatedListProps<T>) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
@@ -85,7 +84,9 @@ function VirtualizedPaginatedList<T>({
   const [data, setData] = useState<T[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalResult, setTotalResult] = useState<number>(0);
-  const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery);
+  const [searchQuery, setSearchQuery] = useState<string>(
+    initialSearchQuery || ''
+  );
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -106,6 +107,10 @@ function VirtualizedPaginatedList<T>({
         abortControllerRef.current.abort();
       }
       abortControllerRef.current = new AbortController();
+
+      console.log(
+        `loadData() => type=${type} p=${pageNum} l=${itemsPerPage} q=${search}`
+      );
 
       if (type === 'initial') setIsInitialLoading(true);
       if (type === 'more') setLoadingMore(true);
@@ -181,18 +186,13 @@ function VirtualizedPaginatedList<T>({
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
       if (abortControllerRef.current) abortControllerRef.current.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialSearchQuery, loadData]);
 
   useEffect(() => {
     if (previousSearchQuery.current === searchQuery) return;
-
     previousSearchQuery.current = searchQuery;
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (onSearchStart) onSearchStart(searchQuery);
 
     searchTimeoutRef.current = setTimeout(() => {
@@ -254,7 +254,7 @@ function VirtualizedPaginatedList<T>({
         LoadingComponent
       ) : (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="small" color={loadingColor} />
+          <ActivityIndicator size="small" color={colors.accent} />
         </View>
       );
     }
@@ -337,7 +337,7 @@ function VirtualizedPaginatedList<T>({
           >
             <Text style={[typography.caption, { color: colors.text }]}>
               {totalResult > 0 ? formatNumber(totalResult) : ''}{' '}
-              {type.charAt(0).toUpperCase() + type.slice(1)}
+              {title.charAt(0).toUpperCase() + title.slice(1)}
               {totalResult > 1 ? 's' : ''}
             </Text>
           </View>
@@ -358,7 +358,8 @@ function VirtualizedPaginatedList<T>({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={loadingColor}
+              progressBackgroundColor={colors.border}
+              colors={[colors.text]}
             />
           ) : undefined
         }

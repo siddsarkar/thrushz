@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { useActiveTrack } from 'react-native-track-player';
 
 import { jiosaavnApi, JiosaavnApiSong } from '@/api';
 import {
@@ -14,6 +14,8 @@ import VirtualizedPaginatedList, {
 } from '@/components/ui/VirtualizedPaginatedList';
 
 export default function SongSearchScreen() {
+  const activeTrack = useActiveTrack();
+
   const fetchSongs = async (
     params: FetchDataParams
   ): Promise<PaginatedResponse<JiosaavnApiSong>> => {
@@ -42,6 +44,7 @@ export default function SongSearchScreen() {
       artwork: createImageLinks(song.image || '')[0]?.url || '',
       duration: Number(song.more_info.duration || 0),
       id: song.id,
+      canFavorite: true,
     });
     await TrackPlayer.play();
   }, []);
@@ -58,6 +61,7 @@ export default function SongSearchScreen() {
       description={item.subtitle}
       image={item.image}
       onPress={() => onItemPress(item)}
+      isPlaying={activeTrack?.id === item.id}
     />
   );
 
@@ -67,7 +71,7 @@ export default function SongSearchScreen() {
 
   return (
     <VirtualizedPaginatedList<JiosaavnApiSong>
-      type="song"
+      title="song"
       fetchData={fetchSongs}
       renderItem={renderSong}
       keyExtractor={getSongKey}

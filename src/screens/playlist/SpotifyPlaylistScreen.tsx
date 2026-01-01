@@ -18,8 +18,6 @@ import { playlistsSongsTable, playlistsTable } from '@/db/schema';
 import { useOverlayLoader } from '@/hooks/useOverlayLoader';
 import { uuidv4 } from '@/utils/uuid';
 
-type Playlist = typeof playlistsTable.$inferSelect;
-
 async function processPlaylistItems(items: SpotifyPlaylistTrack[]) {
   /**
    * 1. Loop through each item in the playlist
@@ -177,16 +175,6 @@ const SpotifyPlaylistDisplay = ({
       await new Promise((resolve) => setTimeout(resolve, 500));
       const song = songs.find((s) => s.track.id === item.id);
       if (song) {
-        // await TrackPlayer.reset();
-        // await TrackPlayer.add({
-        //   url: song.track.uri || '',
-        //   title: song.track.name,
-        //   artist: song.track.artists.map((artist) => artist.name).join(', '),
-        //   artwork: song.track.album.images[0].url,
-        //   duration: Number(song.track.duration_ms / 1000),
-        //   id: song.track.id,
-        // });
-        // await TrackPlayer.play();
         // Linking.openURL(song.track.uri);
       }
     } finally {

@@ -27,6 +27,7 @@ import { AddToPlaylistSheet } from '@/components/playlist/AddToPlaylistSheet';
 import { ListItem } from '@/components/ui/ListItem';
 import { db, LIKED_SONGS_PLAYLIST_ID } from '@/db';
 import { playlistsSongsTable, playlistsTable } from '@/db/schema';
+import { usePlayerQueue } from '@/hooks/player/usePlayerQueue';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
 
@@ -71,17 +72,22 @@ function PlaylistDisplay({
   playlist: Playlist;
   songIds: string[];
 }) {
-  const activeSong = useActiveTrack();
+  const { addToQueue } = usePlayerQueue();
   const { dismissAll } = useBottomSheetModal();
+
+  const activeSong = useActiveTrack();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
+
   const songs = useQuery({
     queryKey: ['playlist-songs', songIds],
     queryFn: () => jiosaavnApi.getSongDetailsById(songIds),
+    enabled: songIds.length > 0,
   });
 
-  const addToPlaylistSheetRef = useRef<BottomSheetModal>(null);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+
+  const addToPlaylistSheetRef = useRef<BottomSheetModal>(null);
   const [isAddToPlaylistSheetOpen, setIsAddToPlaylistSheetOpen] =
     useState(false);
 
@@ -96,6 +102,13 @@ function PlaylistDisplay({
   );
 
   const snapPoints = useMemo(() => ['55%', '100%'], []);
+
+  const handleDeletePlaylist = useCallback(async () => {
+    await db
+      .delete(playlistsTable)
+      .where(eq(playlistsTable.id, playlist?.id || ''));
+    router.dismissTo('/');
+  }, [playlist?.id]);
 
   const onItemPress = useCallback(
     async (item: { id: string; title: string; image?: string }) => {
@@ -112,6 +125,7 @@ function PlaylistDisplay({
           artwork: createImageLinks(song.image || '')[0]?.url || '',
           duration: Number(song.more_info.duration || 0),
           id: song.id,
+          canFavorite: true,
         })) || []
       );
 
@@ -121,42 +135,6 @@ function PlaylistDisplay({
       TrackPlayer.play();
     },
     [songs.data?.songs]
-  );
-
-  const handleDeletePlaylist = useCallback(async () => {
-    await db
-      .delete(playlistsTable)
-      .where(eq(playlistsTable.id, playlist?.id || ''));
-    router.dismissTo('/');
-  }, [playlist?.id]);
-
-  const handleAddToPlaylistPress = useCallback(async () => {
-    dismissAll();
-    addToPlaylistSheetRef.current?.present();
-    setIsAddToPlaylistSheetOpen(true);
-  }, [dismissAll]);
-
-  // renders
-  const renderHeaderHandle = useCallback(
-    (props: BottomSheetHandleProps) => (
-      <HeaderHandle
-        {...props}
-        item={songs.data?.songs?.find((s) => s.id === selectedTrackId) || null}
-      />
-    ),
-    [songs.data?.songs, selectedTrackId]
-  );
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        pressBehavior="close"
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-      />
-    ),
-    []
   );
 
   const onItemLongPress = useCallback((item: { id: string }) => {
@@ -236,6 +214,51 @@ function PlaylistDisplay({
         });
     }
   }, [dismissAll, selectedTrackId]);
+
+  const handleAddToQueuePress = useCallback(() => {
+    dismissAll();
+    const song = songs.data?.songs?.find((s) => s.id === selectedTrackId);
+    if (!song) return;
+    addToQueue({
+      url:
+        createDownloadLinks(song.more_info.encrypted_media_url || '')[0]?.url ||
+        '',
+      title: song.title,
+      artist: song.more_info.artistMap?.primary_artists[0]?.name || '',
+      artwork: createImageLinks(song.image || '')[0]?.url || '',
+      duration: Number(song.more_info.duration || 0),
+      id: song.id,
+    });
+  }, [dismissAll, selectedTrackId, addToQueue, songs?.data?.songs]);
+
+  const handleAddToPlaylistPress = useCallback(async () => {
+    dismissAll();
+    addToPlaylistSheetRef.current?.present();
+    setIsAddToPlaylistSheetOpen(true);
+  }, [dismissAll]);
+
+  // renders
+  const renderHeaderHandle = useCallback(
+    (props: BottomSheetHandleProps) => (
+      <HeaderHandle
+        {...props}
+        item={songs.data?.songs?.find((s) => s.id === selectedTrackId) || null}
+      />
+    ),
+    [songs.data?.songs, selectedTrackId]
+  );
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    []
+  );
 
   return (
     <Fragment>
@@ -331,6 +354,7 @@ function PlaylistDisplay({
           onAddToPlaylistPress={handleAddToPlaylistPress}
           onRemoveFromPlaylistPress={handleRemoveFromPlaylistPress}
           onFavoritePress={handleFavoritePress}
+          onAddToQueuePress={handleAddToQueuePress}
         />
       </BottomSheetModal>
     </Fragment>
@@ -341,14 +365,16 @@ export default function PlaylistScreen({ playlistId }: { playlistId: string }) {
   const {
     data: [playlist],
   } = useLiveQuery(
-    db.select().from(playlistsTable).where(eq(playlistsTable.id, playlistId))
+    db.select().from(playlistsTable).where(eq(playlistsTable.id, playlistId)),
+    [playlistId]
   );
 
   const { data: songs } = useLiveQuery(
     db
       .select()
       .from(playlistsSongsTable)
-      .where(eq(playlistsSongsTable.playlistId, playlistId))
+      .where(eq(playlistsSongsTable.playlistId, playlistId)),
+    [playlistId]
   );
 
   if (!playlist) {

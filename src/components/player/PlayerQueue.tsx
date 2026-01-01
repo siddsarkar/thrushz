@@ -1,34 +1,12 @@
-import { useEffect, useState } from 'react';
 import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TrackPlayer, { Track, useActiveTrack } from 'react-native-track-player';
+import TrackPlayer, { useActiveTrack } from 'react-native-track-player';
 
-import { ListItem } from '../ui/ListItem';
-
-export const useTrackPlayerQueue = () => {
-  const [queue, setQueue] = useState<Track[]>([]);
-
-  useEffect(() => {
-    let unmounted = false;
-
-    const fetchQueue = async () => {
-      const queue = await TrackPlayer.getQueue();
-      if (unmounted) return;
-      setQueue(queue);
-    };
-
-    fetchQueue();
-
-    return () => {
-      unmounted = true;
-    };
-  }, []);
-
-  return queue;
-};
+import { ListItem } from '@/components/ui/ListItem';
+import { usePlayerQueue } from '@/hooks/player/usePlayerQueue';
 
 export function PlayerQueue() {
-  const queue = useTrackPlayerQueue();
+  const { queue } = usePlayerQueue();
   const activeSong = useActiveTrack();
   const insets = useSafeAreaInsets();
 

@@ -1,24 +1,9 @@
 import Icon from '@expo/vector-icons/Ionicons';
-import { ComponentProps, useCallback, useEffect, useState } from 'react';
-import TrackPlayer, { RepeatMode } from 'react-native-track-player';
+import { ComponentProps } from 'react';
+import { RepeatMode } from 'react-native-track-player';
 
+import { usePlayerRepeatMode } from '@/hooks/player/usePlayerRepeatMode';
 import { useThemeColors } from '@/theme/hooks/useTheme';
-
-export const useTrackPlayerRepeatMode = () => {
-  const [repeatMode, setRepeatMode] = useState<RepeatMode>();
-
-  const changeRepeatMode = useCallback(async (repeatMode: RepeatMode) => {
-    await TrackPlayer.setRepeatMode(repeatMode);
-
-    setRepeatMode(repeatMode);
-  }, []);
-
-  useEffect(() => {
-    TrackPlayer.getRepeatMode().then(setRepeatMode);
-  }, []);
-
-  return { repeatMode, changeRepeatMode };
-};
 
 type IconProps = Omit<ComponentProps<typeof Icon>, 'name'>;
 type IconName = ComponentProps<typeof Icon>['name'];
@@ -31,7 +16,7 @@ const repeatOrder = [
 
 export const PlayerRepeatModeToggle = ({ ...iconProps }: IconProps) => {
   const colors = useThemeColors();
-  const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode();
+  const { repeatMode, changeRepeatMode } = usePlayerRepeatMode();
 
   const toggleRepeatMode = () => {
     if (repeatMode == null) return;

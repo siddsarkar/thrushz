@@ -1,20 +1,14 @@
 import { Redirect, Stack } from 'expo-router';
-import { Text, View } from 'react-native';
 
 import { useSession } from '@/auth/context/AuthSessionProvider';
-import { useThemeColors } from '@/theme/hooks/useTheme';
+import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
 function AppLayout() {
   const { user, isLoading } = useSession();
-  const colors = useThemeColors();
 
   // You can keep the splash screen open, or render a loading screen like we do here.
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: colors.text }}>Loading...</Text>
-      </View>
-    );
+    return <LoadingIndicator text="Loading user session..." />;
   }
 
   // Only require authentication within the (app) group's layout as users

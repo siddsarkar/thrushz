@@ -8,6 +8,7 @@ import TrackPlayer, {
   useProgress,
 } from 'react-native-track-player';
 
+import { usePlayerTrackFavorite } from '@/hooks/player/usePlayerTrackFavorite';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 import { withOpacity } from '@/utils/color';
 
@@ -22,6 +23,8 @@ export function MiniPlayer({
   const colors = useThemeColors();
   const { position, duration } = useProgress();
   const { playing, bufferingDuringPlay } = useIsPlaying();
+  const { isFavorite, toggleFavorite } = usePlayerTrackFavorite(track?.id);
+
   const progress = position / duration;
   // @ts-expect-error - track.artwork is not typed
   const imageUri = track?.artwork?.uri || track?.artwork;
@@ -69,14 +72,16 @@ export function MiniPlayer({
         </View>
       </Pressable>
       <View style={styles.controls}>
-        <Pressable onPress={playing ? TrackPlayer.pause : TrackPlayer.play}>
-          <Icon
-            name={playing ? 'add-circle-outline' : 'checkmark-circle'}
-            size={28}
-            color={colors.text}
-            iconStyle="solid"
-          />
-        </Pressable>
+        {track?.canFavorite && (
+          <Pressable onPress={toggleFavorite}>
+            <Icon
+              name={isFavorite ? 'checkmark-circle' : 'add-circle-outline'}
+              size={28}
+              color={colors.text}
+              iconStyle="solid"
+            />
+          </Pressable>
+        )}
         {bufferingDuringPlay ? (
           <View style={styles.button}>
             <Icon

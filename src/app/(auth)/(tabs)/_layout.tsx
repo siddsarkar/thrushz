@@ -109,8 +109,8 @@ const TabLayout = withModalProvider(() => {
           <TabTrigger name="search" asChild>
             <TabButton icon="search" />
           </TabTrigger>
-          <TabTrigger name="search" asChild>
-            <TabButton icon="list-sharp" />
+          <TabTrigger name="debug" asChild>
+            <TabButton icon="bug" />
           </TabTrigger>
           <TabTrigger name="library" asChild>
             <TabButton icon="folder" />
@@ -122,6 +122,7 @@ const TabLayout = withModalProvider(() => {
         <TabTrigger name="home" href="/" />
         <TabTrigger name="search" href="/search" />
         <TabTrigger name="library" href="/library" />
+        <TabTrigger name="debug" href="/debugger" />
       </TabList>
     </Tabs>
   );
