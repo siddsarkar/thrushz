@@ -13,6 +13,7 @@ import {
   DefaultAudioServiceBehaviour,
   DefaultRepeatMode,
 } from '@/services/playback/SetupService';
+import { useTheme } from '@/theme/hooks/useTheme';
 
 export const OptionStack: React.FC<{
   children: React.ReactNode;
@@ -30,6 +31,10 @@ export const OptionStack: React.FC<{
 };
 
 export const OptionSheet: React.FC = () => {
+  const {
+    mode,
+    theme: { colors },
+  } = useTheme();
   const [selectedRepeatMode, setSelectedRepeatMode] = useState(
     repeatModeToIndex(DefaultRepeatMode)
   );
@@ -40,10 +45,12 @@ export const OptionSheet: React.FC = () => {
   return (
     <BottomSheetScrollView>
       <OptionStack vertical={true}>
-        <Text style={styles.optionRowLabel}>Repeat Mode</Text>
+        <Text style={{ color: colors.text }}>Repeat Mode</Text>
         <Spacer />
         <SegmentedControl
-          appearance={'dark'}
+          appearance={mode === 'dark' ? 'light' : 'dark'}
+          tintColor={colors.border}
+          backgroundColor={colors.card}
           values={['Off', 'Track', 'Queue']}
           selectedIndex={selectedRepeatMode}
           onChange={async (event) => {
@@ -61,7 +68,9 @@ export const OptionSheet: React.FC = () => {
           <Text style={styles.optionRowLabel}>Audio Service on App Kill</Text>
           <Spacer />
           <SegmentedControl
-            appearance={'dark'}
+            appearance={mode === 'dark' ? 'dark' : 'light'}
+            tintColor={colors.border}
+            backgroundColor={colors.card}
             values={['Continue', 'Pause', 'Stop & Remove']}
             selectedIndex={selectedAudioServiceBehaviour}
             onChange={async (event) => {
@@ -111,7 +120,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   optionRowLabel: {
-    color: 'white',
     fontSize: 20,
     fontWeight: '600',
   },

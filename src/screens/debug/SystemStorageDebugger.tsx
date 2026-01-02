@@ -26,7 +26,7 @@ import { usePreventBackPress } from '@/hooks/usePreventBackPress';
 import { useSAF } from '@/hooks/useSAF';
 import { useStorageState } from '@/hooks/useStorageState';
 import DownloadsScreenV2 from '@/screens/downloads/DownloadsScreenV2';
-import { useThemeColors } from '@/theme/hooks/useTheme';
+import { useTheme, useThemeColors } from '@/theme/hooks/useTheme';
 import { formatBytes } from '@/utils/format/bytes';
 import { SAFManager } from '@/utils/saf-manager';
 
@@ -52,7 +52,10 @@ function SystemFileExplorer() {
 
   usePreventBackPress(preventBackPress, goBack);
 
-  const colors = useThemeColors();
+  const {
+    theme: { colors },
+    mode,
+  } = useTheme();
 
   function loadAllFiles() {
     let files: (File | Directory)[] = [];
@@ -119,6 +122,9 @@ function SystemFileExplorer() {
         return (
           <View style={{ gap: 10 }}>
             <SegmentedControl
+              appearance={mode === 'dark' ? 'light' : 'dark'}
+              tintColor={colors.border}
+              backgroundColor={colors.card}
               values={['Cache', 'Document']}
               selectedIndex={isCache ? 0 : 1}
               onChange={async (event) => {
@@ -504,11 +510,18 @@ export default function SystemStorageDebugger() {
     'saf' | 'system' | 'http' | 'downloads'
   >('downloads');
   const insets = useSafeAreaInsets();
+  const {
+    theme: { colors },
+    mode,
+  } = useTheme();
   return (
     <View
       style={{ paddingTop: insets.top + 16, flex: 1, flexDirection: 'column' }}
     >
       <SegmentedControl
+        appearance={mode === 'dark' ? 'light' : 'dark'}
+        tintColor={colors.border}
+        backgroundColor={colors.card}
         values={['Downloads', 'SAF', 'System', 'HTTP']}
         selectedIndex={
           selectedTab === 'downloads'

@@ -83,28 +83,14 @@ async function importSpotifyPlaylist(
 
   if (id) {
     try {
-      const playlistDetails = await spotifyApi.fetchPlaylistDetails(
-        id,
-        ['name', 'images'],
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log('Playlist Details:', playlistDetails);
+      const playlistDetails = await spotifyApi.fetchPlaylistDetails(id);
 
       const nameOfPlaylist = playlistDetails.name;
-      const playlistImage = playlistDetails?.images[0]?.url || null;
+      const playlistImage = playlistDetails?.images?.[0]?.url || null;
 
-      const allPlaylistItems = await spotifyApi.fetchAllItemsInPlaylist(id, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const allPlaylistItems = await spotifyApi.fetchAllItemsInPlaylist(id);
 
       let songIds = await processPlaylistItems(allPlaylistItems);
-      console.log('Successfully imported playlist:', nameOfPlaylist);
 
       playlist = {
         name: nameOfPlaylist,
@@ -121,32 +107,24 @@ async function importSpotifyPlaylist(
   return success ? playlist : null;
 }
 
-const fetchPlaylist = async (id: string, token: string) => {
-  if (!id || !token) return Promise.reject('No token or playlistId provided!');
+const fetchPlaylist = async (id: string) => {
+  if (!id) return Promise.reject('No playlistId provided!');
 
-  const playlist = await spotifyApi.fetchPlaylistDetails(
-    id,
-    ['id', 'name', 'images', 'description'],
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const playlist = await spotifyApi.fetchPlaylistDetails(id, [
+    'id',
+    'name',
+    'images',
+    'description',
+  ]);
   return playlist;
 };
 
 const fetchPlaylistSongs = async (
-  id: string,
-  token: string
+  id: string
 ): Promise<SpotifyPlaylistTrack[]> => {
-  if (!id || !token) return Promise.reject('No token or playlistId provided!');
+  if (!id) return Promise.reject('No playlistId provided!');
 
-  const playlist = await spotifyApi.fetchAllItemsInPlaylist(id, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const playlist = await spotifyApi.fetchAllItemsInPlaylist(id);
   return playlist;
 };
 
@@ -280,7 +258,7 @@ const SpotifyPlaylistDisplay = ({
       moreIcon="download"
       title={playlist.name}
       itemCount={songs.length}
-      image={playlist.images[0].url}
+      image={playlist.images?.[0]?.url || ''}
       description={playlist.description}
       items={songs.map((item) => ({
         ...item.track,
@@ -288,8 +266,9 @@ const SpotifyPlaylistDisplay = ({
         isPlayable: item.track.is_playable,
         id: item.track.id,
         title: item.track.name,
-        description: item.track.artists.map((artist) => artist.name).join(', '),
-        image: item.track.album.images[0].url,
+        description:
+          item.track.artists?.map((artist) => artist.name).join(', ') || '',
+        image: item.track.album?.images?.[0]?.url || '',
         duration: Math.floor(item.track.duration_ms / 1000),
       }))}
       onItemPress={onItemPress}
@@ -303,9 +282,8 @@ export default function SpotifyPlaylistScreen({
 }: {
   playlistId: string;
 }) {
-  const { token } = useSession();
-  const songsPromise = fetchPlaylistSongs(playlistId, token || '');
-  const playlistPromise = fetchPlaylist(playlistId, token || '');
+  const songsPromise = fetchPlaylistSongs(playlistId);
+  const playlistPromise = fetchPlaylist(playlistId);
 
   return (
     <ErrorBoundary fallback={<ErrorIndicator />}>

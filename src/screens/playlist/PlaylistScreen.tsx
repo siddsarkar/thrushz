@@ -151,9 +151,30 @@ function PlaylistDisplay({
     setIsTrackInfoSheetOpen(false);
   }, []);
 
+  const handleDownloadPress = useCallback(() => {
+    if (!selectedTrackId) return;
+
+    let url =
+      createDownloadLinks(
+        songs.data?.songs?.find((s) => s.id === selectedTrackId)?.more_info
+          .encrypted_media_url || ''
+      )[0]?.url || null;
+    if (!url) return;
+
+    trackInfoSheetRef.current?.dismiss();
+    setTimeout(() => {
+      router.push({
+        pathname: '/downloads',
+        params: { url },
+      });
+    }, 100);
+  }, [selectedTrackId, songs.data?.songs]);
+
   const handleCreatePlaylistPress = useCallback(() => {
     dismissAll();
-    router.push(`/playlist/create`);
+    setTimeout(() => {
+      router.push(`/playlist/create`);
+    }, 100);
   }, [dismissAll]);
 
   const handleAddMoreSongsToPlaylistPress = useCallback(() => {
@@ -355,6 +376,7 @@ function PlaylistDisplay({
           onRemoveFromPlaylistPress={handleRemoveFromPlaylistPress}
           onFavoritePress={handleFavoritePress}
           onAddToQueuePress={handleAddToQueuePress}
+          onDownloadPress={handleDownloadPress}
         />
       </BottomSheetModal>
     </Fragment>

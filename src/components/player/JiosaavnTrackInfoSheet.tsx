@@ -155,11 +155,13 @@ export function JiosaavnTrackInfoSheet({
           </View>
         )}
 
-        <ListItemButton
-          Icon={<MaterialIcons name="queue" size={24} color={colors.text} />}
-          title="Add to queue"
-          onPress={onAddToQueuePress}
-        />
+        {onAddToQueuePress && (
+          <ListItemButton
+            Icon={<MaterialIcons name="queue" size={24} color={colors.text} />}
+            title="Add to queue"
+            onPress={onAddToQueuePress}
+          />
+        )}
 
         {onRemoveFromPlaylistPress && (
           <ListItemButton
@@ -175,18 +177,19 @@ export function JiosaavnTrackInfoSheet({
           />
         )}
 
-        <ListItemButton
-          Icon={
-            <MaterialIcons
-              name={isFav ? 'favorite' : 'favorite-border'}
-              size={24}
-              color={colors.text}
-            />
-          }
-          title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-          onPress={onFavoritePress}
-        />
-
+        {onFavoritePress && (
+          <ListItemButton
+            Icon={
+              <MaterialIcons
+                name={isFav ? 'favorite' : 'favorite-border'}
+                size={24}
+                color={colors.text}
+              />
+            }
+            title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+            onPress={onFavoritePress}
+          />
+        )}
         <ListItemButton
           Icon={
             <MaterialIcons name="playlist-add" size={24} color={colors.text} />

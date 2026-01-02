@@ -24,7 +24,11 @@ import { ListItem } from '@/components/ui/ListItem';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { db } from '@/db';
 import { playlistsTable } from '@/db/schema';
-import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
+import {
+  useThemeColors,
+  useThemeShadows,
+  useThemeTypography,
+} from '@/theme/hooks/useTheme';
 
 const fetchSpotifyUserPlaylists = async (
   userId?: string,
@@ -33,11 +37,7 @@ const fetchSpotifyUserPlaylists = async (
   if (!userId || !token) {
     return Promise.reject('No token or userId provided!');
   }
-  const playlists = await spotifyApi.fetchUserPlaylists(userId, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const playlists = await spotifyApi.fetchUserPlaylists(userId);
   return playlists.items;
 };
 
@@ -103,7 +103,6 @@ const PlaylistItemDisplay = forwardRef<View, PlaylistItemDisplayProps>(
     );
   }
 );
-
 PlaylistItemDisplay.displayName = 'PlaylistItemDisplay';
 
 const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
@@ -112,17 +111,18 @@ const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
     ref: Ref<View>
   ) => {
     const colors = useThemeColors();
+    const shadows = useThemeShadows();
     return (
       <Pressable
         ref={ref}
         {...props}
         style={{
+          ...shadows.xs,
           flex: 1,
           flexDirection: 'column',
           alignItems: 'center',
           gap: 10,
-          // padding: 5,
-          backgroundColor: colors.border,
+          backgroundColor: colors.card,
           maxWidth: '48%',
           borderRadius: 4,
           overflow: 'hidden',
@@ -132,6 +132,8 @@ const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
         <ListItem
           onPress={(props as { onPress: () => void }).onPress}
           title={title}
+          titleStyle={{ lineHeight: 18, fontSize: 13, fontWeight: 600 }}
+          numberOfLinesTitle={2}
           description={description}
           image={image}
         />
@@ -139,11 +141,35 @@ const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
     );
   }
 );
-
 PlaylistItemDisplayInline.displayName = 'PlaylistItemDisplayInline';
 
 const MyPlaylistsPlaylistDisplay = () => {
   const { data: playlists } = useLiveQuery(db.select().from(playlistsTable));
+
+  const renderItem = useCallback(
+    ({ item }: { item: typeof playlistsTable.$inferSelect }) => {
+      return (
+        <Link
+          href={
+            item.author === 'jiosaavn'
+              ? {
+                  pathname: '/playlist/jiosaavn/[id]',
+                  params: { id: item.id || '' },
+                }
+              : { pathname: '/playlist/[id]', params: { id: item.id || '' } }
+          }
+          asChild
+        >
+          <PlaylistItemDisplayInline
+            title={item.name || ''}
+            image={item.image || ''}
+          />
+        </Link>
+      );
+    },
+    []
+  );
+
   return (
     <FlatList
       data={playlists}
@@ -152,20 +178,9 @@ const MyPlaylistsPlaylistDisplay = () => {
       columnWrapperStyle={{
         gap: 10,
         paddingHorizontal: 16,
-        // justifyContent: 'space-between',
       }}
       style={{ gap: 10 }}
-      renderItem={({ item }) => (
-        <Link
-          href={{ pathname: '/playlist/[id]', params: { id: item.id || '' } }}
-          asChild
-        >
-          <PlaylistItemDisplayInline
-            title={item.name || ''}
-            image={item.image || ''}
-          />
-        </Link>
-      )}
+      renderItem={renderItem}
     />
   );
 };
@@ -181,7 +196,7 @@ const AmbientSoundsPlaylistDisplay = () => {
   );
 };
 
-const SampleLocalPlaylistDisplay = () => {
+const RNTPSamplePlaylistDisplay = () => {
   return (
     <Link href={{ pathname: '/playlist/sample-playlist' }} asChild>
       <PlaylistItemDisplay
@@ -317,9 +332,6 @@ const PlaylistListDisplay = ({
               >
                 Hola! {user?.display_name}
               </Text>
-              {/* <Text style={[typography.body, { color: colors.textMuted }]}>
-                Your playlists and ambient sounds
-              </Text> */}
             </View>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
@@ -350,17 +362,17 @@ const PlaylistListDisplay = ({
                 renderItem={({ item }) =>
                   source === 'jiosaavn' ? (
                     <JiosaavnPlaylistDisplay
-                      playlist={item as unknown as JiosaavnApiPlaylistMini}
+                      playlist={item as JiosaavnApiPlaylistMini}
                     />
                   ) : source === 'spotify' ? (
                     <SpotifyPlaylistDisplay
-                      playlist={item as unknown as SpotifyPlaylist}
+                      playlist={item as SpotifyPlaylist}
                     />
                   ) : source === 'asset-local' ? (
-                    (item as unknown as string) === 'ambient-sounds' ? (
+                    item === 'ambient-sounds' ? (
                       <AmbientSoundsPlaylistDisplay />
                     ) : (
-                      <SampleLocalPlaylistDisplay />
+                      <RNTPSamplePlaylistDisplay />
                     )
                   ) : null
                 }

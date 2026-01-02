@@ -5,7 +5,7 @@ import TrackPlayer from 'react-native-track-player';
 import localPlaylist from '@/assets/data/playlist.json';
 import { ListLayout } from '@/components/layouts/list-layout';
 
-export default function LocalPlaylistScreen() {
+export default function RNTPSamplePlaylistScreen() {
   const tracks = localPlaylist;
 
   const handlePress = useCallback(
@@ -36,10 +36,10 @@ export default function LocalPlaylistScreen() {
 
   return (
     <ListLayout
-      title="Local Playlist"
+      title="Sample Playlist"
       itemCount={tracks.length}
       image={tracks[0].artwork}
-      description="Local playlist to relax and sleep"
+      description="Sample playlist from RNTP"
       items={tracks.map((sound, index) => ({
         ...sound,
         id: index.toString(),

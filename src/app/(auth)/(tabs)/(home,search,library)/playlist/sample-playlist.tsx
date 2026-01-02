@@ -1,5 +1,5 @@
-import LocalPlaylistScreen from '@/screens/playlist/LocalPlaylistScreen';
+import RNTPSamplePlaylistScreen from '@/screens/playlist/static/RNTPSamplePlaylistScreen';
 
 export default function Page() {
-  return <LocalPlaylistScreen />;
+  return <RNTPSamplePlaylistScreen />;
 }

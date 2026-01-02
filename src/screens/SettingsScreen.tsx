@@ -110,7 +110,9 @@ export default function SettingsScreen() {
         <View style={{ gap: 10 }}>
           <Text style={{ color: colors.text }}>Theme</Text>
           <SegmentedControl
-            appearance={'dark'}
+            appearance={mode === 'dark' ? 'light' : 'dark'}
+            tintColor={colors.border}
+            backgroundColor={colors.card}
             values={['light', 'dark', 'system'] as ThemeMode[]}
             selectedIndex={['light', 'dark', 'system'].indexOf(mode)}
             onChange={async (event) => {
@@ -123,7 +125,9 @@ export default function SettingsScreen() {
           />
           <Text style={{ color: colors.text }}>Color scheme</Text>
           <SegmentedControl
-            appearance={'dark'}
+            appearance={mode === 'dark' ? 'light' : 'dark'}
+            tintColor={colors.border}
+            backgroundColor={colors.card}
             values={['minimal', 'girly-pop', 'forest'] as ThemeScheme[]}
             selectedIndex={['minimal', 'girly-pop', 'forest'].indexOf(scheme)}
             onChange={async (event) => {

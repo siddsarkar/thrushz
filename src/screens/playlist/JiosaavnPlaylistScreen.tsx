@@ -36,6 +36,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { ListItem } from '@/components/ui/ListItem';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { usePlaylistFavorite } from '@/hooks/playlist/usePlaylistFavorite';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
 
@@ -82,14 +83,19 @@ const HeaderHandle = memo(HeaderHandleComponent);
 
 const PlaylistDisplay = ({
   playlistPromise,
+  playlistId,
 }: {
   playlistPromise: Promise<JiosaavnApiPlaylist>;
+  playlistId: string;
 }) => {
-  const { dismissAll } = useBottomSheetModal();
   const playlist = use(playlistPromise);
+
+  const { dismissAll } = useBottomSheetModal();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
-  // Bottom sheet state
+
+  const { isFavorite, toggleFavorite } = usePlaylistFavorite(playlistId);
+
   const trackInfoSheetRef = useRef<BottomSheetModal>(null);
   const [isTrackInfoSheetOpen, setIsTrackInfoSheetOpen] = useState(false);
 
@@ -98,10 +104,13 @@ const PlaylistDisplay = ({
     useState(false);
 
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
-  const [downloadSongUrl, setDownloadSongUrl] = useState<string | null>(null);
 
   useBottomSheetBack(isTrackInfoSheetOpen, trackInfoSheetRef, () =>
     setIsTrackInfoSheetOpen(false)
+  );
+
+  useBottomSheetBack(isAddToPlaylistSheetOpen, addToPlaylistSheetRef, () =>
+    setIsAddToPlaylistSheetOpen(false)
   );
 
   const snapPoints = useMemo(() => ['55%', '100%'], []);
@@ -145,8 +154,8 @@ const PlaylistDisplay = ({
       )[0]?.url || null;
     if (!url) return;
 
+    trackInfoSheetRef.current?.dismiss();
     setTimeout(() => {
-      trackInfoSheetRef.current?.dismiss();
       router.push({
         pathname: '/downloads',
         params: { url },
@@ -162,7 +171,9 @@ const PlaylistDisplay = ({
 
   const handleCreatePlaylistPress = useCallback(() => {
     dismissAll();
-    router.push(`/playlist/create`);
+    setTimeout(() => {
+      router.push(`/playlist/create`);
+    }, 100);
   }, [dismissAll]);
 
   // sheet callbacks
@@ -211,6 +222,10 @@ const PlaylistDisplay = ({
         }))}
         onItemPress={onItemPress}
         onItemLongPress={onItemLongPress}
+        moreIcon={isFavorite ? 'heart' : 'heart-outline'}
+        onMorePress={() =>
+          toggleFavorite(playlist.title || '', playlist.image || undefined)
+        }
       />
       <BottomSheetModal
         key="track-info-sheet"
@@ -265,7 +280,10 @@ export default function JiosaavnPlaylistScreen({
   return (
     <ErrorBoundary fallback={<ErrorIndicator />}>
       <Suspense fallback={<LoadingIndicator />}>
-        <PlaylistDisplay playlistPromise={songsPromise} />
+        <PlaylistDisplay
+          playlistPromise={songsPromise}
+          playlistId={playlistId}
+        />
       </Suspense>
     </ErrorBoundary>
   );

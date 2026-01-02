@@ -1,12 +1,20 @@
 import { Image } from 'expo-image';
 import { decode } from 'html-entities';
-import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 
 export type ListItemProps = {
   title: string;
   style?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
   description?: string;
   numberOfLinesTitle?: number;
   numberOfLinesDescription?: number;
@@ -23,6 +31,7 @@ export function ListItem(props: ListItemProps) {
   const {
     title,
     style,
+    titleStyle,
     description,
     numberOfLinesTitle = 1,
     numberOfLinesDescription = 1,
@@ -54,7 +63,7 @@ export function ListItem(props: ListItemProps) {
           style={{
             width: 50,
             aspectRatio: 1,
-            backgroundColor: colors.card,
+            backgroundColor: colors.border,
           }}
           placeholder={require('@/assets/images/android-icon-foreground.png')}
         />
@@ -63,7 +72,9 @@ export function ListItem(props: ListItemProps) {
         <Text
           style={[
             typography.body,
-            { color: isPlaying ? colors.accent : colors.text },
+            { color: colors.text },
+            titleStyle,
+            isPlaying && { color: colors.accent },
           ]}
           numberOfLines={numberOfLinesTitle}
         >

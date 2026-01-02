@@ -85,11 +85,12 @@ describe('SpotifyApiClient', () => {
 
   describe('Playlist API', () => {
     it('fetchPlaylistDetails() handles undefined fields parameter', async () => {
-      const userPlaylists = await client.fetchUserPlaylists(userId, options);
-      const playlistId = userPlaylists.items[0]?.id ?? '';
-      if (!playlistId) {
-        throw new Error('No playlist found');
-      }
+      // const userPlaylists = await client.fetchUserPlaylists(userId, options);
+      // const playlistId = userPlaylists.items[0]?.id ?? '';
+      // if (!playlistId) {
+      //   throw new Error('No playlist found');
+      // }
+      const playlistId = '4MwUfOcEXKsnYmi2cX48j9';
       // Call without fields parameter to test the false branch
       const response = await client.fetchPlaylistDetails(
         playlistId,

@@ -86,6 +86,7 @@ export interface ThemeRadii {
 
 export interface ThemeShadows {
   none: object;
+  xs: object;
   sm: object;
   md: object;
   lg: object;

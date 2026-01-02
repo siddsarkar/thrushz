@@ -12,7 +12,7 @@ const minimalLightColors: ThemeColors = {
   secondary: '#22c55e',
   background: '#FFFFFF',
   surface: '#F8F9FA',
-  card: '#FFFFFF',
+  card: '#F7F8FA',
   none: '#FFFFFF00',
 
   text: '#1A1A1A',
@@ -48,7 +48,7 @@ const minimalLightColors: ThemeColors = {
 const minimalDarkColors: ThemeColors = {
   primary: '#3B82F6',
   secondary: '#10B981',
-  background: '#000',
+  background: '#000000',
   surface: '#121212',
   card: '#1e1e1e',
   none: '#FFFFFF00',

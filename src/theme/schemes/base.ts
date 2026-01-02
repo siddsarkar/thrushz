@@ -59,6 +59,13 @@ const baseRadii = {
 // Base shadows
 const baseShadows = {
   none: {},
+  xs: {
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
   sm: {
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -92,6 +99,13 @@ const baseShadows = {
 // Dark shadows
 const darkShadows = {
   none: {},
+  xs: {
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
   sm: {
     shadowColor: '#000',
     shadowOpacity: 0.3,

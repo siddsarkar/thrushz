@@ -16,6 +16,7 @@ import { TabButton } from '@/components/ui/TabButton';
 import { withModalProvider } from '@/hoc/withModalProvider';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
+import { withOpacity } from '@/utils/color';
 
 const TabLayout = withModalProvider(() => {
   const insets = useSafeAreaInsets();
@@ -91,11 +92,24 @@ const TabLayout = withModalProvider(() => {
           right: 0,
         }}
       >
-        <MiniPlayer track={track} onPress={handlePresentPress} />
         <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 1)']}
+          colors={[
+            'transparent',
+            withOpacity(colors.background, 0.8),
+            colors.background,
+          ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 100,
+          }}
+        />
+        <MiniPlayer track={track} onPress={handlePresentPress} />
+        <View
           style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly',
@@ -115,7 +129,7 @@ const TabLayout = withModalProvider(() => {
           <TabTrigger name="library" asChild>
             <TabButton icon="folder" />
           </TabTrigger>
-        </LinearGradient>
+        </View>
       </View>
 
       <TabList style={{ display: 'none' }}>
