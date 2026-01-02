@@ -29,13 +29,15 @@ import {
   createDownloadLinks,
   createImageLinks,
 } from '@/api/jiosaavn/utils/helpers';
-import { ListLayout } from '@/components/layouts/list-layout';
+import {
+  ListLayout,
+  ListLayoutSkeleton,
+} from '@/components/layouts/list-layout';
 import { JiosaavnTrackInfoSheet } from '@/components/player/JiosaavnTrackInfoSheet';
 import { AddToPlaylistSheet } from '@/components/playlist/AddToPlaylistSheet';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { ListItem } from '@/components/ui/ListItem';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { usePlaylistFavorite } from '@/hooks/playlist/usePlaylistFavorite';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
@@ -279,7 +281,7 @@ export default function JiosaavnPlaylistScreen({
 
   return (
     <ErrorBoundary fallback={<ErrorIndicator />}>
-      <Suspense fallback={<LoadingIndicator />}>
+      <Suspense fallback={<ListLayoutSkeleton />}>
         <PlaylistDisplay
           playlistPromise={songsPromise}
           playlistId={playlistId}

@@ -1,8 +1,13 @@
 import Icon from '@expo/vector-icons/Ionicons';
+import {
+  QueryErrorResetBoundary,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Image } from 'expo-image';
 import { Link, router } from 'expo-router';
-import { forwardRef, Fragment, Ref, Suspense, use, useCallback } from 'react';
+import { forwardRef, Fragment, Ref, Suspense, useCallback } from 'react';
 import {
   FlatList,
   Pressable,
@@ -18,10 +23,11 @@ import { spotifyApi, SpotifyPlaylist } from '@/api/spotify';
 import ambientSounds from '@/assets/data/google-ambient-sounds.json';
 import localPlaylist from '@/assets/data/playlist.json';
 import { useSession } from '@/auth/context/AuthSessionProvider';
+// import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { ListItem } from '@/components/ui/ListItem';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { SkeletonLoader } from '@/components/ui/Skeleton';
 import { db } from '@/db';
 import { playlistsTable } from '@/db/schema';
 import {
@@ -31,11 +37,10 @@ import {
 } from '@/theme/hooks/useTheme';
 
 const fetchSpotifyUserPlaylists = async (
-  userId?: string,
-  token?: string
+  userId?: string
 ): Promise<SpotifyPlaylist[]> => {
-  if (!userId || !token) {
-    return Promise.reject('No token or userId provided!');
+  if (!userId) {
+    return Promise.reject('No userId provided!');
   }
   const playlists = await spotifyApi.fetchUserPlaylists(userId);
   return playlists.items;
@@ -73,15 +78,15 @@ const PlaylistItemDisplay = forwardRef<View, PlaylistItemDisplayProps>(
         }}
       >
         <Image
-          source={{
-            uri: image,
-          }}
+          source={{ uri: image }}
           placeholder={require('@/assets/images/app-icon.png')}
+          fadeDuration={500}
           style={{
             width: '100%',
             aspectRatio: 1,
             backgroundColor: colors.card,
           }}
+          placeholderContentFit="contain"
         />
         <View style={{ flex: 1 }}>
           <Text
@@ -143,9 +148,11 @@ const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
 );
 PlaylistItemDisplayInline.displayName = 'PlaylistItemDisplayInline';
 
-const MyPlaylistsPlaylistDisplay = () => {
-  const { data: playlists } = useLiveQuery(db.select().from(playlistsTable));
-
+const MyPlaylistsPlaylistDisplay = ({
+  playlists,
+}: {
+  playlists: (typeof playlistsTable.$inferSelect)[];
+}) => {
   const renderItem = useCallback(
     ({ item }: { item: typeof playlistsTable.$inferSelect }) => {
       return (
@@ -257,28 +264,45 @@ type Section = {
   data: readonly SectionItem[];
 };
 
-const PlaylistListDisplay = ({
-  jiosaavnTopPlaylistsPromise,
-  spotifyUserPlaylistsPromise,
-  refresh,
-}: {
-  jiosaavnTopPlaylistsPromise: Promise<JiosaavnApiPlaylistMini[]>;
-  spotifyUserPlaylistsPromise: Promise<SpotifyPlaylist[]>;
-  refresh: () => void;
-}) => {
+const PlaylistListDisplay = () => {
   const { user } = useSession();
-  const jiosaavnTopPlaylists = use(jiosaavnTopPlaylistsPromise);
-  const spotifyUserPlaylists = use(spotifyUserPlaylistsPromise);
+  const { data: playlists } = useLiveQuery(db.select().from(playlistsTable));
+
+  const queryClient = useQueryClient();
+  const {
+    data: jiosaavnTopPlaylists,
+    isLoading: isFetchingJiosaavnTopPlaylists,
+  } = useSuspenseQuery({
+    queryKey: ['jiosaavnTopPlaylists'],
+    queryFn: fetchJiosaavnTopPlaylists,
+  });
+  const {
+    data: spotifyUserPlaylists,
+    isLoading: isFetchingSpotifyUserPlaylists,
+  } = useSuspenseQuery({
+    queryKey: ['spotifyUserPlaylists'],
+    queryFn: () => fetchSpotifyUserPlaylists(user?.id || ''),
+  });
 
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const typography = useThemeTypography();
 
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['jiosaavnTopPlaylists'] });
+    queryClient.invalidateQueries({ queryKey: ['spotifyUserPlaylists'] });
+  }, [queryClient]);
+
+  const isRefreshing =
+    isFetchingJiosaavnTopPlaylists || isFetchingSpotifyUserPlaylists;
+
   return (
     <SectionList
       style={{ flex: 1, paddingTop: insets.top }}
       contentContainerStyle={{ paddingBottom: 60 }}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+      }
       sections={
         [
           {
@@ -347,7 +371,7 @@ const PlaylistListDisplay = ({
       renderSectionHeader={({ section: { title, data, source } }) => (
         <View>
           {source === 'local' ? (
-            <MyPlaylistsPlaylistDisplay />
+            <MyPlaylistsPlaylistDisplay playlists={playlists} />
           ) : (
             <Fragment>
               <View style={{ padding: 16 }}>
@@ -386,31 +410,93 @@ const PlaylistListDisplay = ({
   );
 };
 
-export default function HomeScreen() {
-  const { user, token } = useSession();
-  const jiosaavnTopPlaylists = fetchJiosaavnTopPlaylists();
-  const spotifyUserPlaylists = fetchSpotifyUserPlaylists(
-    user?.id || '',
-    token || ''
-  );
-  const refresh = useCallback(() => {
-    Promise.all([
-      fetchJiosaavnTopPlaylists(),
-      fetchSpotifyUserPlaylists(user?.id || '', token || ''),
-    ]).then(() => {
-      console.log('Refreshed!');
-    });
-  }, [user?.id, token]);
-
+export const HomeScreenSkeleton = () => {
+  const insets = useSafeAreaInsets();
   return (
-    <ErrorBoundary fallback={<ErrorIndicator />}>
-      <Suspense fallback={<LoadingIndicator text="Loading playlists..." />}>
-        <PlaylistListDisplay
-          jiosaavnTopPlaylistsPromise={jiosaavnTopPlaylists}
-          spotifyUserPlaylistsPromise={spotifyUserPlaylists}
-          refresh={refresh}
-        />
-      </Suspense>
-    </ErrorBoundary>
+    <View style={{ flex: 1, paddingTop: insets.top }}>
+      {/* Header Skeleton: User avatar, display name, and settings button */}
+      <View
+        style={{
+          padding: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <SkeletonLoader
+            height={35}
+            width={35}
+            style={{ borderRadius: 17.5 }}
+          />
+          <SkeletonLoader height={20} width={100} />
+        </View>
+        <SkeletonLoader height={24} width={24} />
+      </View>
+
+      {/* Inline Playlist Skeleton: 4 items */}
+      <View style={{ paddingHorizontal: 16, gap: 10 }}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <SkeletonLoader height={50} style={{ flex: 1 }} />
+          <SkeletonLoader height={50} style={{ flex: 1 }} />
+        </View>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <SkeletonLoader height={50} style={{ flex: 1 }} />
+          <SkeletonLoader height={50} style={{ flex: 1 }} />
+        </View>
+      </View>
+
+      {/* title skeleton */}
+      <View style={{ paddingHorizontal: 16, paddingVertical: 20 }}>
+        <SkeletonLoader height={20} width={100} />
+      </View>
+      {/* My Playlists Skeleton: 2 column grid with 4 items */}
+      <View style={{ paddingHorizontal: 16, flexDirection: 'row', gap: 10 }}>
+        <View style={{ gap: 10 }}>
+          <SkeletonLoader height={150} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+        <View style={{ gap: 10 }}>
+          <SkeletonLoader height={150} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+        <View style={{ gap: 10 }}>
+          <SkeletonLoader height={150} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+      </View>
+
+      {/* title skeleton */}
+      <View style={{ paddingHorizontal: 16, paddingVertical: 20 }}>
+        <SkeletonLoader height={20} width={100} />
+      </View>
+      {/* My Playlists Skeleton: 2 column grid with 4 items */}
+      <View style={{ paddingHorizontal: 16, flexDirection: 'row', gap: 10 }}>
+        <View style={{ gap: 10 }}>
+          <SkeletonLoader height={150} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+        <View style={{ gap: 10 }}>
+          <SkeletonLoader height={150} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+        <View style={{ gap: 10 }}>
+          <SkeletonLoader height={150} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export default function HomeScreen() {
+  return (
+    <QueryErrorResetBoundary>
+      <ErrorBoundary fallback={<ErrorIndicator />}>
+        <Suspense fallback={<HomeScreenSkeleton />}>
+          <PlaylistListDisplay />
+        </Suspense>
+      </ErrorBoundary>
+    </QueryErrorResetBoundary>
   );
 }

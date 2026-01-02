@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {
+  focusManager,
   onlineManager,
   QueryClient,
   QueryClientProvider,
@@ -13,15 +14,21 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
-import { Linking, useColorScheme } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  Linking,
+  Platform,
+  useColorScheme,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TrackPlayer from 'react-native-track-player';
 
 import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { OverlayLoader } from '@/components/ui/OverlayLoader';
 import { OverlayLoaderProvider } from '@/contexts/OverlayLoaderContext';
 import { useDbInit } from '@/hooks/useDbInit';
+import { HomeScreenSkeleton } from '@/screens/HomeScreen';
 import { PlaybackService } from '@/services/playback/PlaybackService';
 import { QueueInitialTracksService } from '@/services/playback/QueueInitialTracksService';
 import { SetupService } from '@/services/playback/SetupService';
@@ -63,6 +70,12 @@ onlineManager.setEventListener((setOnline) => {
   });
 });
 
+function onAppStateChange(status: AppStateStatus) {
+  if (Platform.OS !== 'web') {
+    focusManager.setFocused(status === 'active');
+  }
+}
+
 function Inner() {
   const {
     isDark,
@@ -71,6 +84,12 @@ function Inner() {
 
   const isPlayerReady = useSetupPlayer();
   const isDbReady = useDbInit();
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', onAppStateChange);
+
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     function deepLinkHandler(data: { url: string }) {
@@ -102,12 +121,8 @@ function Inner() {
     },
   };
 
-  if (!isPlayerReady) {
-    return <LoadingIndicator text="Initializing player..." />;
-  }
-
-  if (!isDbReady) {
-    return <LoadingIndicator text="Initializing database..." />;
+  if (!isPlayerReady || !isDbReady) {
+    return <HomeScreenSkeleton />;
   }
 
   return (

@@ -9,10 +9,12 @@ import {
   SpotifyPlaylistTrack,
 } from '@/api';
 import { useSession } from '@/auth/context/AuthSessionProvider';
-import { ListLayout } from '@/components/layouts/list-layout';
+import {
+  ListLayout,
+  ListLayoutSkeleton,
+} from '@/components/layouts/list-layout';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { db } from '@/db';
 import { playlistsSongsTable, playlistsTable } from '@/db/schema';
 import { useOverlayLoader } from '@/hooks/useOverlayLoader';
@@ -287,7 +289,7 @@ export default function SpotifyPlaylistScreen({
 
   return (
     <ErrorBoundary fallback={<ErrorIndicator />}>
-      <Suspense fallback={<LoadingIndicator />}>
+      <Suspense fallback={<ListLayoutSkeleton />}>
         <SpotifyPlaylistDisplay
           songsPromise={songsPromise}
           playlistPromise={playlistPromise}

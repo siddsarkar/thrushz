@@ -1,14 +1,14 @@
 import { Redirect, Stack } from 'expo-router';
 
 import { useSession } from '@/auth/context/AuthSessionProvider';
-import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { HomeScreenSkeleton } from '@/screens/HomeScreen';
 
 function AppLayout() {
   const { user, isLoading } = useSession();
 
   // You can keep the splash screen open, or render a loading screen like we do here.
   if (isLoading) {
-    return <LoadingIndicator text="Loading user session..." />;
+    return <HomeScreenSkeleton />;
   }
 
   // Only require authentication within the (app) group's layout as users

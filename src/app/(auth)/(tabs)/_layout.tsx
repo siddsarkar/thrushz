@@ -129,6 +129,9 @@ const TabLayout = withModalProvider(() => {
           <TabTrigger name="library" asChild>
             <TabButton icon="folder" />
           </TabTrigger>
+          <TabTrigger name="library" asChild>
+            <TabButton icon="logo-windows" />
+          </TabTrigger>
         </View>
       </View>
 

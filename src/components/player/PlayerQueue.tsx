@@ -22,7 +22,7 @@ export function PlayerQueue() {
           onPress={() => TrackPlayer.skip(index)}
         />
       )}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item, index) => `${item.id}-${index}`}
       contentContainerStyle={{
         paddingBottom: insets.bottom,
         gap: 10,

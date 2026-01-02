@@ -21,7 +21,10 @@ import {
   createDownloadLinks,
   createImageLinks,
 } from '@/api/jiosaavn/utils/helpers';
-import { ListLayout } from '@/components/layouts/list-layout';
+import {
+  ListLayout,
+  ListLayoutSkeleton,
+} from '@/components/layouts/list-layout';
 import { JiosaavnTrackInfoSheet } from '@/components/player/JiosaavnTrackInfoSheet';
 import { AddToPlaylistSheet } from '@/components/playlist/AddToPlaylistSheet';
 import { ListItem } from '@/components/ui/ListItem';
@@ -79,7 +82,7 @@ function PlaylistDisplay({
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
 
-  const songs = useQuery({
+  const { data: { songs = [] } = {}, isFetching: isFetchingSongs } = useQuery({
     queryKey: ['playlist-songs', songIds],
     queryFn: () => jiosaavnApi.getSongDetailsById(songIds),
     enabled: songIds.length > 0,
@@ -112,11 +115,11 @@ function PlaylistDisplay({
 
   const onItemPress = useCallback(
     async (item: { id: string; title: string; image?: string }) => {
-      const songIndex = songs.data?.songs?.findIndex((s) => s.id === item.id);
+      const songIndex = songs?.findIndex((s) => s.id === item.id);
 
       await TrackPlayer.reset();
       TrackPlayer.add(
-        songs.data?.songs?.map((song) => ({
+        songs?.map((song) => ({
           url:
             createDownloadLinks(song.more_info.encrypted_media_url || '')[0]
               ?.url || '',
@@ -134,7 +137,7 @@ function PlaylistDisplay({
       }
       TrackPlayer.play();
     },
-    [songs.data?.songs]
+    [songs]
   );
 
   const onItemLongPress = useCallback((item: { id: string }) => {
@@ -156,7 +159,7 @@ function PlaylistDisplay({
 
     let url =
       createDownloadLinks(
-        songs.data?.songs?.find((s) => s.id === selectedTrackId)?.more_info
+        songs?.find((s) => s.id === selectedTrackId)?.more_info
           .encrypted_media_url || ''
       )[0]?.url || null;
     if (!url) return;
@@ -168,7 +171,7 @@ function PlaylistDisplay({
         params: { url },
       });
     }, 100);
-  }, [selectedTrackId, songs.data?.songs]);
+  }, [selectedTrackId, songs]);
 
   const handleCreatePlaylistPress = useCallback(() => {
     dismissAll();
@@ -238,7 +241,7 @@ function PlaylistDisplay({
 
   const handleAddToQueuePress = useCallback(() => {
     dismissAll();
-    const song = songs.data?.songs?.find((s) => s.id === selectedTrackId);
+    const song = songs?.find((s) => s.id === selectedTrackId);
     if (!song) return;
     addToQueue({
       url:
@@ -250,7 +253,7 @@ function PlaylistDisplay({
       duration: Number(song.more_info.duration || 0),
       id: song.id,
     });
-  }, [dismissAll, selectedTrackId, addToQueue, songs?.data?.songs]);
+  }, [dismissAll, selectedTrackId, addToQueue, songs]);
 
   const handleAddToPlaylistPress = useCallback(async () => {
     dismissAll();
@@ -263,10 +266,10 @@ function PlaylistDisplay({
     (props: BottomSheetHandleProps) => (
       <HeaderHandle
         {...props}
-        item={songs.data?.songs?.find((s) => s.id === selectedTrackId) || null}
+        item={songs?.find((s) => s.id === selectedTrackId) || null}
       />
     ),
-    [songs.data?.songs, selectedTrackId]
+    [songs, selectedTrackId]
   );
 
   const renderBackdrop = useCallback(
@@ -281,6 +284,10 @@ function PlaylistDisplay({
     []
   );
 
+  if (isFetchingSongs) {
+    return <ListLayoutSkeleton />;
+  }
+
   return (
     <Fragment>
       <ListLayout
@@ -288,7 +295,7 @@ function PlaylistDisplay({
         itemCount={songIds.length}
         image={playlist.image || undefined}
         items={
-          songs.data?.songs?.map((song) => ({
+          songs?.map((song) => ({
             isPlaying: activeSong?.id === song.id,
             description: `${song.more_info.album} &bull; ${song.more_info.artistMap?.primary_artists[0]?.name}`,
             duration: Number(song.more_info.duration || 0),

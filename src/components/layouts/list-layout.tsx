@@ -9,6 +9,8 @@ import { ListItem } from '@/components/ui/ListItem';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 import { formatDuration } from '@/utils/format/duration';
 
+import { SkeletonLoader } from '../ui/Skeleton';
+
 export type ListItemType = {
   id: string;
   title: string;
@@ -38,6 +40,46 @@ const HEADER_HEIGHT = 400;
 const MIN_HEADER_HEIGHT = 90;
 
 const HEADER_HEIGHT_DIFF = HEADER_HEIGHT - MIN_HEADER_HEIGHT;
+
+export function ListLayoutSkeleton() {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, paddingTop: insets.top + 24 }}>
+      {/* Cover Image Skeleton */}
+      <View
+        style={{ padding: 16, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <SkeletonLoader height={250} width={250} />
+        {/* Title Skeleton */}
+        <View style={{ padding: 16, gap: 10, alignItems: 'center' }}>
+          <SkeletonLoader height={20} width={150} />
+          <SkeletonLoader height={15} width={100} />
+        </View>
+      </View>
+
+      {/* List Items Skeleton */}
+      {Array.from({ length: 10 }).map((_, index) => (
+        <View
+          key={index}
+          style={{
+            paddingHorizontal: 16,
+            paddingBottom: 10,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <SkeletonLoader height={50} width={50} />
+          <View style={{ gap: 10, flex: 1 }}>
+            <SkeletonLoader height={15} width={150} />
+            <SkeletonLoader height={15} width={50} />
+          </View>
+          <SkeletonLoader height={15} width={30} />
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export function ListLayout(props: ListLayoutProps) {
   const activeSong = useActiveTrack();

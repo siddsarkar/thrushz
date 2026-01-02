@@ -28,7 +28,6 @@ export const TabButton = forwardRef(
             gap: 5,
             padding: 14,
           },
-          // isFocused ? { backgroundColor: iconColor } : undefined,
         ]}
       >
         <IconPack
@@ -38,7 +37,11 @@ export const TabButton = forwardRef(
         />
         {title && (
           <Text
-            style={{ fontSize: 16, color: isFocused ? accentColor : iconColor }}
+            style={{
+              fontSize: 12,
+              color: isFocused ? accentColor : iconColor,
+              fontWeight: 600,
+            }}
           >
             {title}
           </Text>
