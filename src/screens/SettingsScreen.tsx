@@ -106,7 +106,9 @@ export default function SettingsScreen() {
               const dir = new Directory(Paths.cache);
               let size = formatBytes(dir.size || 0);
 
-              dir.delete();
+              for (const file of dir.list()) {
+                file.delete();
+              }
 
               await Expo.reloadAppAsync('Cache cleared!');
               ToastAndroid.show(

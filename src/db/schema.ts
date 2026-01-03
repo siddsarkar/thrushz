@@ -1,4 +1,4 @@
-import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { int, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const usersTable = sqliteTable('users_table', {
   id: int().primaryKey({ autoIncrement: true }),
@@ -16,6 +16,7 @@ export const playlistsTable = sqliteTable('playlists_table', {
   name: text().notNull(),
   image: text(),
   author: text(),
+  offline: integer('offline').notNull().default(0),
 });
 
 export const playlistsSongsTable = sqliteTable('playlists_songs_table', {

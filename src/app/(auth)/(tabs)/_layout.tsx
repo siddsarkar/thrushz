@@ -14,11 +14,14 @@ import { MiniPlayer } from '@/components/player/MiniPlayer';
 import { NowPlayingSheet } from '@/components/player/NowPlayingSheet';
 import { TabButton } from '@/components/ui/TabButton';
 import { withModalProvider } from '@/hoc/withModalProvider';
+import { useSyncOfflinePlaylist } from '@/hooks/playlist/useSyncOfflinePlaylist';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
 import { withOpacity } from '@/utils/color';
 
 const TabLayout = withModalProvider(() => {
+  useSyncOfflinePlaylist();
+
   const insets = useSafeAreaInsets();
   const track = useActiveTrack();
   const colors = useThemeColors();

@@ -177,7 +177,7 @@ export default function OfflineSongsScreen() {
       contentContainerStyle={{
         paddingTop: insets.top + 16,
         paddingHorizontal: 16,
-        paddingBottom: 100,
+        paddingBottom: 150,
         gap: 10,
       }}
     />

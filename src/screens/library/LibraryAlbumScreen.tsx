@@ -61,6 +61,15 @@ function AlbumEntry({
     async (params: FetchDataParams) => {
       const { page, limit, searchQuery } = params;
 
+      console.log(
+        'fetchData() => page=',
+        page,
+        'limit=',
+        limit,
+        'searchQuery=',
+        searchQuery
+      );
+
       const albumAssets = await MediaLibrary.getAssetsAsync({
         album,
         mediaType: 'audio',
@@ -69,7 +78,7 @@ function AlbumEntry({
       });
 
       const regex = new RegExp(searchQuery?.toLowerCase() || '', 'i');
-      if (searchQuery) {
+      if (searchQuery?.trim()) {
         const filteredAssets = albumAssets.assets.filter((a) =>
           regex.test(a.filename.toLowerCase())
         );
@@ -87,7 +96,8 @@ function AlbumEntry({
         total: albumAssets.totalCount,
       };
     },
-    [album, after]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [album]
   );
 
   const renderItem = useCallback(
@@ -108,22 +118,23 @@ function AlbumEntry({
     [colors, typography]
   );
 
-  const keyExtractor = useCallback((item: MediaLibrary.Asset) => item.id, []);
+  const keyExtractor = useCallback(
+    (item: MediaLibrary.Asset, index: number) => index.toString(),
+    []
+  );
 
   return (
     <VirtualizedPaginatedList<MediaLibrary.Asset>
-      title="item"
-      backButtonEnabled={true}
+      title="album"
       fetchData={fetchData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       itemsPerPage={20}
-      enablePullToRefresh={false}
-      enableLoadMore={true}
-      loadingColor={colors.primary}
+      inputPlaceholderText="Search album songs..."
       flatListProps={{
-        style: { flex: 1, padding: 16 },
+        showsVerticalScrollIndicator: false,
         contentContainerStyle: { gap: 10 },
+        style: { flex: 1, padding: 16 },
         ListFooterComponent: () => <View style={{ height: 150 }} />,
       }}
     />

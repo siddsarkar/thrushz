@@ -9,7 +9,6 @@ export function useSetupPlayer() {
 
   useEffect(() => {
     let unmounted = false;
-
     (async () => {
       await SetupService();
       if (unmounted) return;
@@ -20,7 +19,6 @@ export function useSetupPlayer() {
         await QueueInitialTracksService();
       }
     })();
-
     return () => {
       unmounted = true;
     };

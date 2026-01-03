@@ -1,0 +1,1 @@
+ALTER TABLE `playlists_table` ADD `offline` integer DEFAULT 0 NOT NULL;

@@ -13,13 +13,14 @@ import {
 } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   AppState,
   AppStateStatus,
   Linking,
   Platform,
   useColorScheme,
+  View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TrackPlayer from 'react-native-track-player';
@@ -28,11 +29,10 @@ import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { OverlayLoader } from '@/components/ui/OverlayLoader';
 import { OverlayLoaderProvider } from '@/contexts/OverlayLoaderContext';
+import { useSetupPlayer } from '@/hooks/player/useSetupPlayer';
 import { useDbInit } from '@/hooks/useDbInit';
 import { HomeScreenSkeleton } from '@/screens/HomeScreen';
 import { PlaybackService } from '@/services/playback/PlaybackService';
-import { QueueInitialTracksService } from '@/services/playback/QueueInitialTracksService';
-import { SetupService } from '@/services/playback/SetupService';
 import { ThemeProvider } from '@/theme';
 import { useTheme } from '@/theme/hooks/useTheme';
 
@@ -143,6 +143,17 @@ function Inner() {
   );
 }
 
+function ThemedBackground({ children }: { children: React.ReactNode }) {
+  const {
+    theme: { colors },
+  } = useTheme();
+  return (
+    <View style={{ backgroundColor: colors.background, flex: 1 }}>
+      {children}
+    </View>
+  );
+}
+
 function RootLayout() {
   const isSystemInDark = useColorScheme() === 'dark';
 
@@ -157,34 +168,14 @@ function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthSessionProvider>
           <ThemeProvider systemSchemeIsDark={isSystemInDark}>
-            <Inner />
+            <ThemedBackground>
+              <Inner />
+            </ThemedBackground>
           </ThemeProvider>
         </AuthSessionProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
-}
-
-function useSetupPlayer() {
-  const [playerReady, setPlayerReady] = useState<boolean>(false);
-
-  useEffect(() => {
-    let unmounted = false;
-    (async () => {
-      await SetupService();
-      if (unmounted) return;
-      setPlayerReady(true);
-      const queue = await TrackPlayer.getQueue();
-      if (unmounted) return;
-      if (queue.length <= 0) {
-        await QueueInitialTracksService();
-      }
-    })();
-    return () => {
-      unmounted = true;
-    };
-  }, []);
-  return playerReady;
 }
 
 export default Sentry.wrap(RootLayout);

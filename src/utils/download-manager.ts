@@ -99,16 +99,25 @@ export class DownloadsStateStorage {
   }
 }
 
-export class DownloadManager {
-  private downloads = new BehaviorSubject<Download[]>([]);
-  private saf: SAFManager;
-  private storage: DownloadsStateStorage;
+class DownloadManager {
+  private static instance: DownloadManager;
 
-  constructor() {
-    this.saf = new SAFManager();
-    this.storage = new DownloadsStateStorage('downloads');
+  private downloads = new BehaviorSubject<Download[]>([]);
+  private saf: SAFManager = new SAFManager();
+  private storage: DownloadsStateStorage = new DownloadsStateStorage(
+    'downloads'
+  );
+
+  private constructor() {
     this.loadDirectoryUri();
     this.loadDownloads();
+  }
+
+  public static getInstance(): DownloadManager {
+    if (!DownloadManager.instance) {
+      DownloadManager.instance = new DownloadManager();
+    }
+    return DownloadManager.instance;
   }
 
   getDownloads() {
@@ -245,7 +254,7 @@ export class DownloadManager {
             });
           }
 
-          return;
+          return true;
         }
 
         // generally donload to saf directory, if songId is not provided
@@ -423,8 +432,6 @@ export class DownloadManager {
         );
         if (artworkFile) {
           artwork = artworkFile.uri;
-          console.log('artwork downloaded', artwork);
-          console.log('artwork file uri', artworkFileUri);
         }
       } catch (error) {
         console.error(error);
@@ -459,9 +466,9 @@ export class DownloadManager {
       });
     }
 
-    ToastAndroid.show('Download started', ToastAndroid.SHORT);
     await this.addDownload(songUrl, songId);
+    console.log(`song "${song.title}" downloaded successfully`);
   }
 }
 
-export const downloadManager = new DownloadManager();
+export const downloadManager = DownloadManager.getInstance();

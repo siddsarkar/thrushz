@@ -15,6 +15,13 @@
       "when": 1767433433501,
       "tag": "0001_flaky_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1767466526938,
+      "tag": "0002_fresh_rage",
+      "breakpoints": true
     }
   ]
 }
