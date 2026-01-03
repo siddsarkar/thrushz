@@ -1,4 +1,4 @@
-import { Semaphore } from 'await-semaphore';
+import { Mutex } from 'await-semaphore';
 import { eq, inArray } from 'drizzle-orm';
 
 import { db } from '@/db';
@@ -15,7 +15,7 @@ type Playlist = typeof playlistsTable.$inferSelect;
 class SyncManager {
   private static instance: SyncManager;
 
-  private semaphore = new Semaphore(1);
+  private semaphore = new Mutex();
 
   private constructor() {
     // private constructor
@@ -48,9 +48,7 @@ class SyncManager {
 
     console.log(`adding playlist "${playlist.name}" to queue`);
     this.playlistSyncQueue.push(playlist);
-    await this.semaphore.use(async () => {
-      await this.syncNextPlaylist();
-    });
+    this.semaphore.use(() => this.syncNextPlaylist());
   }
 
   private async syncNextPlaylist() {
