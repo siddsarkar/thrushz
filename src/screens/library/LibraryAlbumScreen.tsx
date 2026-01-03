@@ -113,6 +113,7 @@ function AlbumEntry({
   return (
     <VirtualizedPaginatedList<MediaLibrary.Asset>
       title="item"
+      backButtonEnabled={true}
       fetchData={fetchData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}

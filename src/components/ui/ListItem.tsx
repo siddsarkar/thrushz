@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { decode } from 'html-entities';
 import {
+  ImageStyle,
   Pressable,
   StyleProp,
   Text,
@@ -19,6 +20,7 @@ export type ListItemProps = {
   numberOfLinesTitle?: number;
   numberOfLinesDescription?: number;
   image?: string | null;
+  imageStyle?: StyleProp<ImageStyle>;
   StartElement?: React.ReactNode;
   onPress?: () => void;
   onLongPress?: () => void;
@@ -31,6 +33,7 @@ export function ListItem(props: ListItemProps) {
   const {
     title,
     style,
+    imageStyle,
     titleStyle,
     description,
     numberOfLinesTitle = 1,
@@ -61,11 +64,13 @@ export function ListItem(props: ListItemProps) {
         <Image
           source={{ uri: image }}
           transition={500}
-          style={{
-            width: 50,
-            aspectRatio: 1,
-            backgroundColor: colors.border,
-          }}
+          style={[
+            {
+              width: 50,
+              aspectRatio: 1,
+            },
+            imageStyle,
+          ]}
           placeholder={require('@/assets/images/android-icon-foreground.png')}
         />
       )}

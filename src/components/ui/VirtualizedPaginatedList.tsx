@@ -1,4 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -55,6 +56,7 @@ export interface VirtualizedPaginatedListProps<T> {
   enablePullToRefresh?: boolean;
   enableLoadMore?: boolean;
   loadingColor?: string;
+  backButtonEnabled?: boolean;
 }
 
 function VirtualizedPaginatedList<T>({
@@ -77,6 +79,7 @@ function VirtualizedPaginatedList<T>({
   flatListProps = {},
   enablePullToRefresh = true,
   enableLoadMore = true,
+  backButtonEnabled = false,
 }: VirtualizedPaginatedListProps<T>) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
@@ -291,15 +294,21 @@ function VirtualizedPaginatedList<T>({
           paddingBottom: 6,
         }}
       >
-        <Pressable
-          style={{
-            paddingLeft: 16,
-            paddingRight: 10,
-          }}
-          onPress={() => router.back()}
-        >
-          <FontAwesome5 name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
+        {backButtonEnabled && (
+          <Pressable
+            style={{
+              paddingLeft: 16,
+              paddingRight: 10,
+            }}
+            onPress={() => router.back()}
+          >
+            <FontAwesome5
+              name="arrow-left"
+              size={18}
+              color={colors.textSecondary}
+            />
+          </Pressable>
+        )}
         <View
           style={{
             flex: 1,
@@ -312,20 +321,47 @@ function VirtualizedPaginatedList<T>({
             gap: 5,
           }}
         >
-          <TextInput
+          <View
             style={{
               flex: 1,
-              padding: 0,
-              paddingLeft: 10,
-              color: colors.text,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: colors.card,
+              borderRadius: 28,
             }}
-            value={searchQuery}
-            onChangeText={(text) => {
-              setSearchQuery(text);
-            }}
-            placeholder={inputPlaceholderText}
-            placeholderTextColor={colors.textSecondary}
-          />
+          >
+            <Icon
+              name="search"
+              size={18}
+              color={colors.text}
+              style={{ paddingLeft: 10 }}
+            />
+            <TextInput
+              style={{
+                flex: 1,
+                paddingLeft: 10,
+                color: colors.text,
+
+                padding: 10,
+                // backgroundColor: colors.error,
+              }}
+              value={searchQuery}
+              onChangeText={(text) => {
+                setSearchQuery(text);
+              }}
+              placeholder={inputPlaceholderText}
+              placeholderTextColor={colors.textSecondary}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable
+                onPress={() => setSearchQuery('')}
+                style={{ paddingRight: 10 }}
+              >
+                <Icon name="close" size={24} color={colors.textSecondary} />
+              </Pressable>
+            )}
+          </View>
+
           <View
             style={{
               height: 30,

@@ -135,6 +135,7 @@ export default function AddToPlaylistScreen({
   return (
     <VirtualizedPaginatedList<JiosaavnApiSong>
       title="song"
+      backButtonEnabled={true}
       fetchData={fetchSongs}
       renderItem={renderSong}
       keyExtractor={getSongKey}

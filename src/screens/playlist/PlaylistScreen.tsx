@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetHandle,
   BottomSheetHandleProps,
   BottomSheetModal,
   useBottomSheetModal,
@@ -11,12 +10,12 @@ import { useQuery } from '@tanstack/react-query';
 import { and, eq } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
-import { Fragment, memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrackPlayer, { useActiveTrack } from 'react-native-track-player';
 
-import { jiosaavnApi, JiosaavnApiSong } from '@/api';
+import { jiosaavnApi } from '@/api';
 import {
   createDownloadLinks,
   createImageLinks,
@@ -25,9 +24,11 @@ import {
   ListLayout,
   ListLayoutSkeleton,
 } from '@/components/layouts/list-layout';
-import { JiosaavnTrackInfoSheet } from '@/components/player/JiosaavnTrackInfoSheet';
 import { AddToPlaylistSheet } from '@/components/playlist/AddToPlaylistSheet';
-import { ListItem } from '@/components/ui/ListItem';
+import { PlaylistInfoSheet } from '@/components/playlist/PlaylistInfoSheet';
+import { PlaylistSheetHeaderHandle } from '@/components/playlist/PlaylistSheetHeaderHandle';
+import { JiosaavnTrackHeaderHandle } from '@/components/song/JiosaavnTrackHeaderHandle';
+import { JiosaavnTrackInfoSheet } from '@/components/song/JiosaavnTrackInfoSheet';
 import { db, LIKED_SONGS_PLAYLIST_ID } from '@/db';
 import {
   downloadedSongsTable,
@@ -43,38 +44,6 @@ import { useThemeColors } from '@/theme/hooks/useTheme';
 import { downloadManager } from '@/utils/download-manager';
 
 type Playlist = typeof playlistsTable.$inferSelect;
-
-const HeaderHandleComponent = ({
-  item,
-  ...props
-}: BottomSheetHandleProps & { item: JiosaavnApiSong | null }) => {
-  const colors = useThemeColors();
-  const { card: backgroundColor, text: indicatorColor } = colors;
-
-  return (
-    <BottomSheetHandle
-      {...props}
-      indicatorStyle={{ height: 4, backgroundColor: indicatorColor }}
-      style={{
-        height: 80,
-        paddingBottom: 12,
-        paddingHorizontal: 16,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: colors.border,
-        zIndex: 99999,
-        backgroundColor: backgroundColor,
-      }}
-    >
-      <ListItem
-        title={item?.title || ''}
-        image={item?.image || ''}
-        description={item?.more_info.artistMap?.primary_artists[0]?.name || ''}
-      />
-    </BottomSheetHandle>
-  );
-};
-
-const HeaderHandle = memo(HeaderHandleComponent);
 
 function PlaylistDisplay({
   playlist,
@@ -100,12 +69,19 @@ function PlaylistDisplay({
 
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
 
+  const playlistMoreSheetRef = useRef<BottomSheetModal>(null);
+  const [isPlaylistMoreSheetOpen, setIsPlaylistMoreSheetOpen] = useState(false);
+
   const addToPlaylistSheetRef = useRef<BottomSheetModal>(null);
   const [isAddToPlaylistSheetOpen, setIsAddToPlaylistSheetOpen] =
     useState(false);
 
   const trackInfoSheetRef = useRef<BottomSheetModal>(null);
   const [isTrackInfoSheetOpen, setIsTrackInfoSheetOpen] = useState(false);
+
+  useBottomSheetBack(isPlaylistMoreSheetOpen, playlistMoreSheetRef, () =>
+    setIsPlaylistMoreSheetOpen(false)
+  );
 
   useBottomSheetBack(isAddToPlaylistSheetOpen, addToPlaylistSheetRef, () =>
     setIsAddToPlaylistSheetOpen(false)
@@ -202,7 +178,7 @@ function PlaylistDisplay({
       }
       TrackPlayer.play();
     },
-    [songs]
+    [songs, downloadedSongIds]
   );
 
   const onItemLongPress = useCallback((item: { id: string }) => {
@@ -238,6 +214,11 @@ function PlaylistDisplay({
     //   });
     // }, 100);
   }, [selectedTrackId]);
+
+  const handlePlaylistMorePress = useCallback(() => {
+    setIsPlaylistMoreSheetOpen(true);
+    playlistMoreSheetRef.current?.present();
+  }, []);
 
   const handleCreatePlaylistPress = useCallback(() => {
     dismissAll();
@@ -329,15 +310,26 @@ function PlaylistDisplay({
     }, 100);
   }, [dismissAll]);
 
+  const handleDismissPlaylistMoreSheet = useCallback(() => {
+    setIsPlaylistMoreSheetOpen(false);
+  }, []);
+
   // renders
   const renderHeaderHandle = useCallback(
     (props: BottomSheetHandleProps) => (
-      <HeaderHandle
+      <JiosaavnTrackHeaderHandle
         {...props}
         item={songs?.find((s) => s.id === selectedTrackId) || null}
       />
     ),
     [songs, selectedTrackId]
+  );
+
+  const renderPlaylistHeaderHandle = useCallback(
+    (props: BottomSheetHandleProps) => (
+      <PlaylistSheetHeaderHandle {...props} playlist={playlist} />
+    ),
+    [playlist]
   );
 
   const renderBackdrop = useCallback(
@@ -372,11 +364,11 @@ function PlaylistDisplay({
           })) || []
         }
         onItemPress={onItemPress}
-        moreIcon="trash-outline"
+        // moreIcon="trash-outline"
         onMorePress={
           playlist.id === LIKED_SONGS_PLAYLIST_ID
             ? undefined
-            : () => handleDeletePlaylist()
+            : () => handlePlaylistMorePress()
         }
         onItemLongPress={onItemLongPress}
         footer={
@@ -453,6 +445,24 @@ function PlaylistDisplay({
           onFavoritePress={handleFavoritePress}
           onAddToQueuePress={handleAddToQueuePress}
           onDownloadPress={handleDownloadPress}
+        />
+      </BottomSheetModal>
+      <BottomSheetModal
+        key="playlist-more-sheet"
+        ref={playlistMoreSheetRef}
+        snapPoints={snapPoints}
+        handleComponent={renderPlaylistHeaderHandle}
+        enableDynamicSizing={false}
+        backdropComponent={renderBackdrop}
+        onDismiss={handleDismissPlaylistMoreSheet}
+        containerStyle={{ marginTop: insets.top }}
+        backgroundComponent={() => (
+          <View style={{ backgroundColor: colors.card }} />
+        )}
+      >
+        <PlaylistInfoSheet
+          playlist={playlist}
+          onDeletePlaylistPress={handleDeletePlaylist}
         />
       </BottomSheetModal>
     </Fragment>

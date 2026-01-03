@@ -48,9 +48,7 @@ export const OptionSheet: React.FC = () => {
         <Text style={{ color: colors.text }}>Repeat Mode</Text>
         <Spacer />
         <SegmentedControl
-          appearance={mode === 'dark' ? 'light' : 'dark'}
-          tintColor={colors.border}
-          backgroundColor={colors.card}
+          appearance={mode === 'dark' ? 'dark' : 'light'}
           values={['Off', 'Track', 'Queue']}
           selectedIndex={selectedRepeatMode}
           onChange={async (event) => {
@@ -65,12 +63,10 @@ export const OptionSheet: React.FC = () => {
       <Spacer />
       {Platform.OS === 'android' && (
         <OptionStack vertical={true}>
-          <Text style={styles.optionRowLabel}>Audio Service on App Kill</Text>
+          <Text style={{ color: colors.text }}>Audio Service on App Kill</Text>
           <Spacer />
           <SegmentedControl
             appearance={mode === 'dark' ? 'dark' : 'light'}
-            tintColor={colors.border}
-            backgroundColor={colors.card}
             values={['Continue', 'Pause', 'Stop & Remove']}
             selectedIndex={selectedAudioServiceBehaviour}
             onChange={async (event) => {

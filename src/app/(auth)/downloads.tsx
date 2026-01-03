@@ -1,8 +1,8 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import DownloadsScreenV2 from '@/screens/downloads/DownloadsScreenV2';
+import DownloadsScreen from '@/screens/downloads/DownloadsScreen';
 
 export default function Page() {
   const { url } = useLocalSearchParams<{ url?: string }>();
-  return <DownloadsScreenV2 url={url} />;
+  return <DownloadsScreen url={url} />;
 }

@@ -1,14 +1,12 @@
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetHandle,
   BottomSheetHandleProps,
   BottomSheetModal,
   useBottomSheetModal,
 } from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
 import React, {
-  memo,
   Suspense,
   use,
   useCallback,
@@ -16,15 +14,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrackPlayer from 'react-native-track-player';
 
-import {
-  jiosaavnApi,
-  JiosaavnApiPlaylist,
-  JiosaavnApiSong,
-} from '@/api/jiosaavn';
+import { jiosaavnApi, JiosaavnApiPlaylist } from '@/api/jiosaavn';
 import {
   createDownloadLinks,
   createImageLinks,
@@ -33,11 +27,11 @@ import {
   ListLayout,
   ListLayoutSkeleton,
 } from '@/components/layouts/list-layout';
-import { JiosaavnTrackInfoSheet } from '@/components/player/JiosaavnTrackInfoSheet';
 import { AddToPlaylistSheet } from '@/components/playlist/AddToPlaylistSheet';
+import { JiosaavnTrackHeaderHandle } from '@/components/song/JiosaavnTrackHeaderHandle';
+import { JiosaavnTrackInfoSheet } from '@/components/song/JiosaavnTrackInfoSheet';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
-import { ListItem } from '@/components/ui/ListItem';
 import { usePlaylistFavorite } from '@/hooks/playlist/usePlaylistFavorite';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
@@ -50,38 +44,6 @@ const fetchPlaylist = async (id: string): Promise<JiosaavnApiPlaylist> => {
   });
   return playlist;
 };
-
-const HeaderHandleComponent = ({
-  item,
-  ...props
-}: BottomSheetHandleProps & { item: JiosaavnApiSong | null }) => {
-  const colors = useThemeColors();
-  const { card: backgroundColor, text: indicatorColor } = colors;
-
-  return (
-    <BottomSheetHandle
-      {...props}
-      indicatorStyle={{ height: 4, backgroundColor: indicatorColor }}
-      style={{
-        height: 80,
-        paddingBottom: 12,
-        paddingHorizontal: 16,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: colors.border,
-        zIndex: 99999,
-        backgroundColor: backgroundColor,
-      }}
-    >
-      <ListItem
-        title={item?.title || ''}
-        image={item?.image || ''}
-        description={item?.more_info.artistMap?.primary_artists[0]?.name || ''}
-      />
-    </BottomSheetHandle>
-  );
-};
-
-const HeaderHandle = memo(HeaderHandleComponent);
 
 const PlaylistDisplay = ({
   playlistPromise,
@@ -192,7 +154,7 @@ const PlaylistDisplay = ({
   // renders
   const renderHeaderHandle = useCallback(
     (props: BottomSheetHandleProps) => (
-      <HeaderHandle
+      <JiosaavnTrackHeaderHandle
         {...props}
         item={playlist.list.find((s) => s.id === selectedTrackId) || null}
       />

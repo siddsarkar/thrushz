@@ -1,5 +1,11 @@
 import Icon from '@expo/vector-icons/Ionicons';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Track } from 'react-native-track-player';
@@ -10,7 +16,10 @@ import { Progress } from '@/components/player/Progress';
 import { Spacer } from '@/components/player/Spacer';
 import { TrackInfo } from '@/components/player/TrackInfo';
 import { usePlayerTrackFavorite } from '@/hooks/player/usePlayerTrackFavorite';
+import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
+
+import { OptionSheet } from './OptionSheet';
 
 export function NowPlayingSheet({
   onClosePress,
@@ -25,6 +34,35 @@ export function NowPlayingSheet({
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const typography = useThemeTypography();
+
+  const optionsSheetRef = useRef<BottomSheetModal>(null);
+  const [optionsSheetOpen, setOptionsSheetOpen] = useState(false);
+
+  useBottomSheetBack(optionsSheetOpen, optionsSheetRef, () =>
+    setOptionsSheetOpen(false)
+  );
+
+  const handleOptionsSheetPress = useCallback(() => {
+    optionsSheetRef.current?.present();
+    setOptionsSheetOpen(true);
+  }, []);
+
+  const handleOptionsSheetDismiss = useCallback(() => {
+    setOptionsSheetOpen(false);
+  }, []);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    []
+  );
+
   return (
     <BottomSheetScrollView
       showsVerticalScrollIndicator={false}
@@ -53,7 +91,7 @@ export function NowPlayingSheet({
               {track?.album || 'Unknown Album'}
             </Text>
           </View>
-          <Pressable onPress={onClosePress} style={{ padding: 20 }}>
+          <Pressable onPress={handleOptionsSheetPress} style={{ padding: 20 }}>
             <Icon name="ellipsis-vertical" size={24} color={colors.text} />
           </Pressable>
         </View>
@@ -70,6 +108,20 @@ export function NowPlayingSheet({
         </View>
         <Spacer mode="expand" />
       </View>
+      <BottomSheetModal
+        ref={optionsSheetRef}
+        stackBehavior="push"
+        snapPoints={['50%']}
+        handleComponent={null}
+        enableDynamicSizing={false}
+        backdropComponent={renderBackdrop}
+        onDismiss={handleOptionsSheetDismiss}
+        containerStyle={{ marginTop: insets.top }}
+        style={{ padding: 16, backgroundColor: colors.background }}
+        backgroundStyle={{ backgroundColor: 'transparent' }}
+      >
+        <OptionSheet />
+      </BottomSheetModal>
     </BottomSheetScrollView>
   );
 }

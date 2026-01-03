@@ -25,7 +25,7 @@ import { useOverlayLoader } from '@/hooks/useOverlayLoader';
 import { usePreventBackPress } from '@/hooks/usePreventBackPress';
 import { useSAF } from '@/hooks/useSAF';
 import { useStorageState } from '@/hooks/useStorageState';
-import DownloadsScreenV2 from '@/screens/downloads/DownloadsScreenV2';
+import DownloadsScreen from '@/screens/downloads/DownloadsScreen';
 import { useTheme, useThemeColors } from '@/theme/hooks/useTheme';
 import { formatBytes } from '@/utils/format/bytes';
 import { SAFManager } from '@/utils/saf-manager';
@@ -156,9 +156,7 @@ function SystemFileExplorer() {
             }}
           >
             <SegmentedControl
-              appearance={mode === 'dark' ? 'light' : 'dark'}
-              tintColor={colors.border}
-              backgroundColor={colors.card}
+              appearance={mode === 'dark' ? 'dark' : 'light'}
               values={['Cache', 'Document']}
               selectedIndex={
                 breadcrumbs[0]?.name?.toLowerCase() === 'cache' ? 0 : 1
@@ -580,9 +578,7 @@ export default function SystemStorageDebugger() {
       style={{ paddingTop: insets.top + 16, flex: 1, flexDirection: 'column' }}
     >
       <SegmentedControl
-        appearance={mode === 'dark' ? 'light' : 'dark'}
-        tintColor={colors.border}
-        backgroundColor={colors.card}
+        appearance={mode === 'dark' ? 'dark' : 'light'}
         values={['Downloads', 'SAF', 'Files', 'HTTP']}
         selectedIndex={
           selectedTab === 'downloads'
@@ -610,7 +606,7 @@ export default function SystemStorageDebugger() {
       />
       <View style={{ flex: 1 }}>
         {selectedTab === 'downloads' ? (
-          <DownloadsScreenV2 />
+          <DownloadsScreen />
         ) : selectedTab === 'saf' ? (
           <SAFFileExplorer />
         ) : selectedTab === 'files' ? (

@@ -157,9 +157,7 @@ export default function SettingsScreen() {
         <View style={{ gap: 10 }}>
           <Text style={{ color: colors.text }}>Theme</Text>
           <SegmentedControl
-            appearance={mode === 'dark' ? 'light' : 'dark'}
-            tintColor={colors.border}
-            backgroundColor={colors.card}
+            appearance={mode === 'dark' ? 'dark' : 'light'}
             values={['light', 'dark', 'system'] as ThemeMode[]}
             selectedIndex={['light', 'dark', 'system'].indexOf(mode)}
             onChange={async (event) => {
@@ -172,9 +170,7 @@ export default function SettingsScreen() {
           />
           <Text style={{ color: colors.text }}>Color scheme</Text>
           <SegmentedControl
-            appearance={mode === 'dark' ? 'light' : 'dark'}
-            tintColor={colors.border}
-            backgroundColor={colors.card}
+            appearance={mode === 'dark' ? 'dark' : 'light'}
             values={['minimal', 'girly-pop', 'forest'] as ThemeScheme[]}
             selectedIndex={['minimal', 'girly-pop', 'forest'].indexOf(scheme)}
             onChange={async (event) => {
@@ -187,9 +183,7 @@ export default function SettingsScreen() {
           />
           <Text style={{ color: colors.text }}>Download quality</Text>
           <SegmentedControl
-            appearance={mode === 'dark' ? 'light' : 'dark'}
-            tintColor={colors.border}
-            backgroundColor={colors.card}
+            appearance={mode === 'dark' ? 'dark' : 'light'}
             values={['320kbps', '160kbps', '96kbps', '48kbps', '12kbps']}
             selectedIndex={[
               '320kbps',

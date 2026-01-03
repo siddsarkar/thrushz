@@ -1,4 +1,5 @@
 import * as MediaLibrary from 'expo-media-library';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,7 +55,18 @@ export default function LibraryScreen() {
     <FlatList
       data={albums}
       renderItem={({ item }) => (
-        <ListItem title={item.title} description="Folder" />
+        <ListItem
+          title={item.title}
+          description="Folder"
+          onPress={() =>
+            router.push({
+              pathname: '/library-album/[id]',
+              params: {
+                id: item.title,
+              },
+            })
+          }
+        />
       )}
       ListHeaderComponent={
         <Text style={[typography.h1, { color: colors.text }]}>Library</Text>

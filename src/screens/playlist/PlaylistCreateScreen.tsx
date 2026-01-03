@@ -49,6 +49,7 @@ export default function PlaylistCreateScreen() {
       </Text>
       <View style={{ marginVertical: 16 }}>
         <TextInput
+          placeholderTextColor={colors.textSecondary}
           placeholder="Enter playlist name"
           value={playlistName}
           onChangeText={setPlaylistName}

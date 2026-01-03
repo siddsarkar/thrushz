@@ -137,6 +137,7 @@ const PlaylistItemDisplayInline = forwardRef<View, PlaylistItemDisplayProps>(
         <ListItem
           onPress={(props as { onPress: () => void }).onPress}
           title={title}
+          imageStyle={{ backgroundColor: colors.border }}
           titleStyle={{ lineHeight: 18, fontSize: 13, fontWeight: 600 }}
           numberOfLinesTitle={2}
           description={description}
