@@ -1,13 +1,13 @@
 import * as MediaLibrary from 'expo-media-library';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ListItem } from '@/components/ui/ListItem';
 import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 
-export function Library() {
+export default function LibraryScreen() {
+  const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const typography = useThemeTypography();
 
@@ -39,44 +39,44 @@ export function Library() {
     setAlbums(fetchedAlbums);
   }
 
-  return permissionResponse?.status !== 'granted' ? (
-    <View style={styles.container}>
-      <Button onPress={getAlbums} title="Get albums" />
-    </View>
-  ) : (
-    <ScrollView contentContainerStyle={{ gap: 10, padding: 16 }}>
-      <Text style={[typography.h1, { color: colors.text }]}>Library</Text>
-      {albums &&
-        albums.map((album) => (
-          <ListItem
-            key={album.id}
-            onPress={() =>
-              router.push({
-                pathname: '/library-album/[id]',
-                params: { id: album.title },
-              })
-            }
-            title={album.title}
-            description="Folder"
-          />
-        ))}
-    </ScrollView>
-  );
-}
+  if (permissionResponse?.status !== 'granted') {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+        <Button onPress={getAlbums} title="Allow access" />
+        <Text style={{ color: colors.text, textAlign: 'center' }}>
+          This app needs access to your media library to show your songs.
+        </Text>
+      </View>
+    );
+  }
 
-export default function LibraryScreen() {
-  const insets = useSafeAreaInsets();
   return (
-    <View style={{ paddingTop: insets.top, flex: 1 }}>
-      <Library />
-    </View>
+    <FlatList
+      data={albums}
+      renderItem={({ item }) => (
+        <ListItem title={item.title} description="Folder" />
+      )}
+      ListHeaderComponent={
+        <Text style={[typography.h1, { color: colors.text }]}>Library</Text>
+      }
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={{
+        paddingTop: insets.top + 16,
+        paddingHorizontal: 16,
+        paddingBottom: 100,
+        gap: 10,
+      }}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    gap: 10,
     flex: 1,
     padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   albumContainer: {
     marginBottom: 16,

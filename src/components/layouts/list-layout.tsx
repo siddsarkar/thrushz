@@ -1,6 +1,6 @@
-import FontAwesome5 from '@expo/vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { useRef } from 'react';
+import { Fragment, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveTrack } from 'react-native-track-player';
@@ -22,13 +22,14 @@ export type ListItemType = {
   [key: string]: unknown;
 };
 
-type MoreIcon = React.ComponentProps<typeof FontAwesome5>['name'];
+type MoreIcon = React.ComponentProps<typeof Icon>['name'];
 export type ListLayoutProps = {
   title: string;
   description?: string;
   image?: string;
   items: ListItemType[];
   itemCount: number;
+  isDownloaded?: boolean;
   onItemPress?: (item: ListItemType) => void;
   onItemLongPress?: (item: ListItemType) => void;
   moreIcon?: MoreIcon;
@@ -143,7 +144,7 @@ export function ListLayout(props: ListLayoutProps) {
         }}
         onPress={() => router.back()}
       >
-        <FontAwesome5 name="arrow-back" size={20} color={colors.text} />
+        <Icon name="arrow-back" size={20} color={colors.text} />
       </Pressable>
 
       {props.onMorePress && (
@@ -175,7 +176,7 @@ export function ListLayout(props: ListLayoutProps) {
             }}
             onPress={props.onMorePress}
           >
-            <FontAwesome5
+            <Icon
               name={props.moreIcon || 'ellipsis-vertical'}
               size={20}
               color={colors.text}
@@ -267,11 +268,22 @@ export function ListLayout(props: ListLayoutProps) {
             onPress={() => props.onItemPress?.(item)}
             onLongPress={() => props.onItemLongPress?.(item)}
             EndElement={
-              item.duration ? (
-                <Text style={[typography.caption, { color: colors.textMuted }]}>
-                  {formatDuration(item.duration)}
-                </Text>
-              ) : null
+              <Fragment>
+                {item.isDownloaded ? (
+                  <Icon
+                    name="checkmark-circle"
+                    size={20}
+                    color={colors.success}
+                  />
+                ) : null}
+                {item.duration ? (
+                  <Text
+                    style={[typography.caption, { color: colors.textMuted }]}
+                  >
+                    {formatDuration(item.duration)}
+                  </Text>
+                ) : null}
+              </Fragment>
             }
           />
         )}

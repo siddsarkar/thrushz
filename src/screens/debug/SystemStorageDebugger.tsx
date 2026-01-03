@@ -46,6 +46,19 @@ function SystemFileExplorer() {
     setBreadcrumbs((prev) => prev.slice(0, -1));
   }, []);
 
+  const onBreadcrumbItemPress = useCallback((item: Directory | File) => {
+    if (item instanceof Directory) {
+      setBreadcrumbs((prev) => {
+        const newBreadcrumbs = [...prev];
+        const index = newBreadcrumbs.indexOf(item);
+        if (index !== -1) {
+          return newBreadcrumbs.slice(0, index + 1);
+        }
+        return newBreadcrumbs;
+      });
+    }
+  }, []);
+
   const preventBackPress = useMemo(() => {
     return breadcrumbs.length > 1;
   }, [breadcrumbs]);
@@ -95,24 +108,38 @@ function SystemFileExplorer() {
     loadFiles();
   }, [loadFiles]);
 
+  const handleDeleteFile = async (file: File) => {
+    try {
+      file.delete();
+      loadFiles();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const sortedByType = useMemo(() => {
     return files.sort((a, b) => {
+      // 1. Directory first
+      if (a instanceof Directory && b instanceof Directory) {
+        return a.name.localeCompare(b.name);
+      }
+      if (a instanceof Directory && b instanceof File) {
+        return -1;
+      }
+      if (a instanceof File && b instanceof Directory) {
+        return 1;
+      }
+      // 3. File second
       if (a instanceof File && b instanceof File) {
-        return b.size - a.size;
+        return a.name.localeCompare(b.name);
       }
       return 0;
     });
   }, [files]);
 
-  const isCache = useMemo(() => {
-    return breadcrumbs?.[0]?.name?.toLowerCase() === 'cache';
-  }, [breadcrumbs]);
-
   return (
     <FlatList
-      //   style={{ flex: 1 }}
       contentContainerStyle={{
-        paddingTop: 16,
         paddingBottom: 200,
         gap: 10,
         paddingHorizontal: 16,
@@ -120,13 +147,22 @@ function SystemFileExplorer() {
       data={sortedByType}
       ListHeaderComponent={() => {
         return (
-          <View style={{ gap: 10 }}>
+          <View
+            style={{
+              gap: 10,
+              backgroundColor: colors.background,
+              paddingBottom: 6,
+              paddingTop: 10,
+            }}
+          >
             <SegmentedControl
               appearance={mode === 'dark' ? 'light' : 'dark'}
               tintColor={colors.border}
               backgroundColor={colors.card}
               values={['Cache', 'Document']}
-              selectedIndex={isCache ? 0 : 1}
+              selectedIndex={
+                breadcrumbs[0]?.name?.toLowerCase() === 'cache' ? 0 : 1
+              }
               onChange={async (event) => {
                 setBreadcrumbs(
                   event.nativeEvent.selectedSegmentIndex === 0
@@ -135,7 +171,7 @@ function SystemFileExplorer() {
                 );
               }}
             />
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <ScrollView horizontal style={{ flexDirection: 'row', gap: 10 }}>
               {breadcrumbs.map((breadcrumb, index) => {
                 return (
                   <View
@@ -146,9 +182,13 @@ function SystemFileExplorer() {
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ color: colors.text }} key={index}>
-                      {breadcrumb.name}
-                    </Text>
+                    <Pressable
+                      onPress={() => onBreadcrumbItemPress(breadcrumb)}
+                    >
+                      <Text style={{ color: colors.text }} key={index}>
+                        {breadcrumb.name}
+                      </Text>
+                    </Pressable>
                     {index < breadcrumbs.length - 1 && (
                       <MaterialIcons
                         name="chevron-right"
@@ -159,7 +199,7 @@ function SystemFileExplorer() {
                   </View>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
         );
       }}
@@ -172,6 +212,8 @@ function SystemFileExplorer() {
           </View>
         );
       }}
+      stickyHeaderHiddenOnScroll={true}
+      stickyHeaderIndices={[0]}
       renderItem={({ item }) => {
         return (
           <ListItem
@@ -202,6 +244,13 @@ function SystemFileExplorer() {
                 setBreadcrumbs((prev) => [...prev, item]);
               }
             }}
+            EndElement={
+              item instanceof File ? (
+                <Pressable onPress={() => handleDeleteFile(item)}>
+                  <MaterialIcons name="delete" size={24} color={colors.text} />
+                </Pressable>
+              ) : null
+            }
           />
         );
       }}
@@ -229,7 +278,6 @@ function SAFFileExplorer() {
       }
 
       if (isMounted) {
-        console.log('Stored URI found:', storedUri);
         safManager.setDirectoryUri(storedUri);
         setHasAccess(true);
         loadFiles();
@@ -376,70 +424,83 @@ function SAFFileExplorer() {
     loadFiles();
   };
 
+  if (!hasAccess) {
+    return (
+      <View
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 10,
+          padding: 16,
+          height: 600,
+        }}
+      >
+        <Button title="Request Directory Access" onPress={requestAccess} />
+        <Text style={{ color: colors.text, textAlign: 'center' }}>
+          This app needs access to your directory to show your files.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView>
-      {!hasAccess ? (
-        <Button title="Request Directory Access" onPress={requestAccess} />
-      ) : (
-        <View>
-          <View style={{ gap: 10, padding: 16 }}>
-            {/* <Button title="Save Text File" onPress={saveTextFile} />
+      <View style={{ gap: 10, padding: 16 }}>
+        {/* <Button title="Save Text File" onPress={saveTextFile} />
             <Button title="Save JSON File" onPress={saveJsonFile} /> */}
-            <Button title="Load Files" onPress={loadFiles} />
-            <Button title="Remove Uri" onPress={revokeAccess} />
-          </View>
+        <Button title="Load Files" onPress={loadFiles} />
+        <Button title="Remove Access" onPress={revokeAccess} />
+      </View>
 
-          {files.length > 0 && (
-            <View style={{ paddingHorizontal: 16 }}>
-              {files.map((file, index) => {
-                if (file instanceof File) {
-                  return (
-                    <ListItem
-                      key={index}
-                      title={file.name || ''}
-                      numberOfLinesTitle={10}
-                      description={`${formatBytes(file.size)} &bull; ${file.type}`}
-                      onPress={() => playFile(file)}
-                      onLongPress={() => writeId3Tags(file)}
-                      StartElement={
-                        isAudioFile(file) ? (
-                          <MaterialIcons
-                            name="music-note"
-                            size={24}
-                            color={colors.text}
-                          />
-                        ) : (
-                          <MaterialIcons
-                            name="file-copy"
-                            size={24}
-                            color={colors.text}
-                          />
-                        )
-                      }
-                      image={null}
-                      EndElement={
-                        <Pressable onPress={() => deleteFile(file)}>
-                          <MaterialIcons
-                            name="delete"
-                            size={24}
-                            color={colors.text}
-                          />
-                        </Pressable>
-                      }
-                    />
-                  );
-                }
-                if (file instanceof Directory) {
-                  return (
-                    <Pressable key={index}>
-                      <Text>• {file.name}</Text>
+      {files.length > 0 && (
+        <View style={{ paddingHorizontal: 16 }}>
+          {files.map((file, index) => {
+            if (file instanceof File) {
+              return (
+                <ListItem
+                  key={index}
+                  title={file.name || ''}
+                  numberOfLinesTitle={10}
+                  description={`${formatBytes(file.size)} &bull; ${file.type}`}
+                  onPress={() => playFile(file)}
+                  onLongPress={() => writeId3Tags(file)}
+                  StartElement={
+                    isAudioFile(file) ? (
+                      <MaterialIcons
+                        name="music-note"
+                        size={24}
+                        color={colors.text}
+                      />
+                    ) : (
+                      <MaterialIcons
+                        name="file-copy"
+                        size={24}
+                        color={colors.text}
+                      />
+                    )
+                  }
+                  image={null}
+                  EndElement={
+                    <Pressable onPress={() => deleteFile(file)}>
+                      <MaterialIcons
+                        name="delete"
+                        size={24}
+                        color={colors.text}
+                      />
                     </Pressable>
-                  );
-                }
-                return null;
-              })}
-            </View>
-          )}
+                  }
+                />
+              );
+            }
+            if (file instanceof Directory) {
+              return (
+                <Pressable key={index}>
+                  <Text>• {file.name}</Text>
+                </Pressable>
+              );
+            }
+            return null;
+          })}
         </View>
       )}
     </ScrollView>
@@ -507,7 +568,7 @@ function HttpDebugger() {
 
 export default function SystemStorageDebugger() {
   const [selectedTab, setSelectedTab] = useState<
-    'saf' | 'system' | 'http' | 'downloads'
+    'saf' | 'files' | 'http' | 'downloads'
   >('downloads');
   const insets = useSafeAreaInsets();
   const {
@@ -522,13 +583,13 @@ export default function SystemStorageDebugger() {
         appearance={mode === 'dark' ? 'light' : 'dark'}
         tintColor={colors.border}
         backgroundColor={colors.card}
-        values={['Downloads', 'SAF', 'System', 'HTTP']}
+        values={['Downloads', 'SAF', 'Files', 'HTTP']}
         selectedIndex={
           selectedTab === 'downloads'
             ? 0
             : selectedTab === 'saf'
               ? 1
-              : selectedTab === 'system'
+              : selectedTab === 'files'
                 ? 2
                 : 3
         }
@@ -539,7 +600,7 @@ export default function SystemStorageDebugger() {
               : event.nativeEvent.selectedSegmentIndex === 1
                 ? 'saf'
                 : event.nativeEvent.selectedSegmentIndex === 2
-                  ? 'system'
+                  ? 'files'
                   : event.nativeEvent.selectedSegmentIndex === 3
                     ? 'http'
                     : 'downloads'
@@ -552,7 +613,7 @@ export default function SystemStorageDebugger() {
           <DownloadsScreenV2 />
         ) : selectedTab === 'saf' ? (
           <SAFFileExplorer />
-        ) : selectedTab === 'system' ? (
+        ) : selectedTab === 'files' ? (
           <SystemFileExplorer />
         ) : (
           <HttpDebugger />

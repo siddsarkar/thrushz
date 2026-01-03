@@ -23,15 +23,24 @@ export const playlistsSongsTable = sqliteTable('playlists_songs_table', {
   songId: text('song_id').notNull(),
 });
 
-const metadataTable = sqliteTable('metadata_table', {
-  id: int('id').primaryKey({ autoIncrement: true }),
+export const metadataTable = sqliteTable('metadata_table', {
+  id: int().primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
   artist: text('artist').notNull(),
   artwork: text('artwork').notNull(),
   duration: int('duration').notNull(),
   album: text('album').notNull(),
-  year: int('year').notNull(),
-  genre: text('genre').notNull(),
+  year: text('year').notNull(),
+});
+
+export const downloadsTable = sqliteTable('downloads_table', {
+  id: int().primaryKey({ autoIncrement: true }),
+  uri: text('uri').notNull(),
+  type: text('type').notNull(),
+  duration: int('duration').notNull(),
+  size: int('size').notNull(),
+  createdAt: int('created_at').notNull(),
+  updatedAt: int('updated_at').notNull(),
 });
 
 export const songsMetadataTable = sqliteTable('songs_metadata_table', {
@@ -41,5 +50,5 @@ export const songsMetadataTable = sqliteTable('songs_metadata_table', {
 
 export const downloadedSongsTable = sqliteTable('downloaded_songs_table', {
   songId: text('song_id').notNull(),
-  fileUri: text('file_uri').notNull(),
+  downloadId: int('download_id').notNull(),
 });

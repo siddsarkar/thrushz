@@ -25,6 +25,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TrackPlayer from 'react-native-track-player';
 
 import { AuthSessionProvider } from '@/auth/context/AuthSessionProvider';
+import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { OverlayLoader } from '@/components/ui/OverlayLoader';
 import { OverlayLoaderProvider } from '@/contexts/OverlayLoaderContext';
 import { useDbInit } from '@/hooks/useDbInit';
@@ -83,7 +84,7 @@ function Inner() {
   } = useTheme();
 
   const isPlayerReady = useSetupPlayer();
-  const isDbReady = useDbInit();
+  const { isReady: isDbReady, error: dbError } = useDbInit();
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', onAppStateChange);
@@ -120,6 +121,10 @@ function Inner() {
       notification: colors.accent,
     },
   };
+
+  if (dbError) {
+    return <ErrorIndicator error={dbError.message} />;
+  }
 
   if (!isPlayerReady || !isDbReady) {
     return <HomeScreenSkeleton />;

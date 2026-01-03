@@ -1,13 +1,29 @@
 import Icon from '@expo/vector-icons/Ionicons';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import * as Expo from 'expo';
 import { Directory, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
 import * as Updates from 'expo-updates';
-import { useEffect } from 'react';
-import { Button, Pressable, Text, ToastAndroid, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  Button,
+  Pressable,
+  Text,
+  ToastAndroid,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import TrackPlayer from 'react-native-track-player';
 
 import { useSession } from '@/auth/context/AuthSessionProvider';
+import { db } from '@/db';
+import {
+  downloadedSongsTable,
+  downloadsTable,
+  metadataTable,
+  songsMetadataTable,
+} from '@/db/schema';
 import { ThemeMode, ThemeScheme } from '@/theme';
 import {
   useTheme,
@@ -16,11 +32,15 @@ import {
 } from '@/theme/hooks/useTheme';
 import { formatBytes } from '@/utils/format/bytes';
 
+type DownloadQuality = '320kbps' | '160kbps' | '96kbps' | '48kbps' | '12kbps';
+
 export default function SettingsScreen() {
   const { signOut } = useSession();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const typography = useThemeTypography();
+  const [downloadQuality, setDownloadQuality] =
+    useState<DownloadQuality>('320kbps');
 
   const { scheme, setScheme, mode, setMode } = useTheme();
   const { currentlyRunning, isUpdateAvailable, isUpdatePending } =
@@ -43,18 +63,6 @@ export default function SettingsScreen() {
 
   const cacheSize = new Directory(Paths.cache).size || 0;
 
-  const clearCache = () => {
-    const dir = new Directory(Paths.cache);
-
-    ToastAndroid.show(`${formatBytes(dir.size || 0)}`, ToastAndroid.SHORT);
-    if (dir.exists) {
-      const files = dir.list();
-      for (const file of files) {
-        file.delete();
-      }
-    }
-  };
-
   const handleSignOut = () => {
     signOut();
   };
@@ -76,6 +84,45 @@ export default function SettingsScreen() {
       });
   };
 
+  const clearOfflineSongs = async () => {
+    Alert.alert(
+      'Are you sure?',
+      'This will clear all offline songs and cache',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await TrackPlayer.stop();
+              await TrackPlayer.reset();
+              await db.delete(downloadedSongsTable);
+              await db.delete(songsMetadataTable);
+              await db.delete(metadataTable);
+              await db.delete(downloadsTable);
+
+              // delete the offline songs directory
+              const dir = new Directory(Paths.cache);
+              let size = formatBytes(dir.size || 0);
+
+              dir.delete();
+
+              await Expo.reloadAppAsync('Cache cleared!');
+              ToastAndroid.show(
+                'Freed up ' + size + ' of cache',
+                ToastAndroid.SHORT
+              );
+            } catch (error) {
+              console.error(error);
+              ToastAndroid.show('Error clearing cache', ToastAndroid.SHORT);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View
       style={{
@@ -93,8 +140,8 @@ export default function SettingsScreen() {
 
       <View style={{ gap: 10 }}>
         <Button
-          title={`Clear cache (${formatBytes(cacheSize)})`}
-          onPress={clearCache}
+          title={`Clear Cache (${formatBytes(cacheSize)})`}
+          onPress={clearOfflineSongs}
         />
         <Button title="Sign out" onPress={handleSignOut} />
 
@@ -135,6 +182,27 @@ export default function SettingsScreen() {
                 ['minimal', 'girly-pop', 'forest'][
                   event.nativeEvent.selectedSegmentIndex
                 ] as ThemeScheme
+              );
+            }}
+          />
+          <Text style={{ color: colors.text }}>Download quality</Text>
+          <SegmentedControl
+            appearance={mode === 'dark' ? 'light' : 'dark'}
+            tintColor={colors.border}
+            backgroundColor={colors.card}
+            values={['320kbps', '160kbps', '96kbps', '48kbps', '12kbps']}
+            selectedIndex={[
+              '320kbps',
+              '160kbps',
+              '96kbps',
+              '48kbps',
+              '12kbps',
+            ].indexOf(downloadQuality)}
+            onChange={async (event) => {
+              setDownloadQuality(
+                ['320kbps', '160kbps', '96kbps', '48kbps', '12kbps'][
+                  event.nativeEvent.selectedSegmentIndex
+                ] as DownloadQuality
               );
             }}
           />

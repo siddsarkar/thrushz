@@ -60,6 +60,7 @@ export function ListItem(props: ListItemProps) {
       {image !== null && (
         <Image
           source={{ uri: image }}
+          transition={500}
           style={{
             width: 50,
             aspectRatio: 1,

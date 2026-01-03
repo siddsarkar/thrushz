@@ -86,25 +86,31 @@ export function AddToPlaylistSheet({
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    setTrack(null);
+    const fetchTrack = async () => {
+      setLoading(true);
+      setError(null);
+      setTrack(null);
 
-    jiosaavnApi
-      .getSongDetailsById(trackId)
-      .then((response) => {
-        if (response.songs && response.songs.length > 0) {
-          setTrack(response.songs[0]);
-        } else {
-          setError('Track not found');
-        }
-      })
-      .catch((err) => {
-        setError(err?.message || 'Failed to load track details');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      let start = performance.now();
+      let response = await jiosaavnApi.getSongDetailsById(trackId);
+
+      let end = performance.now();
+      let diff = end - start;
+      // wait for a minimum of 1000ms
+      if (diff < 1000) {
+        await new Promise((resolve) => setTimeout(resolve, 550 - diff));
+      }
+
+      if (response.songs && response.songs.length > 0) {
+        setTrack(response.songs[0]);
+      } else {
+        setError('Track not found');
+      }
+
+      setLoading(false);
+    };
+
+    fetchTrack();
   }, [trackId]);
 
   const toggleItemInPlaylist = useCallback(

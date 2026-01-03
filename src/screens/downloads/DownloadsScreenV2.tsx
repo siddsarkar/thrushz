@@ -78,7 +78,13 @@ export default function DownloadsScreenV2({ url }: { url?: string }) {
           Download Manager
         </Text>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={{
+            color: colors.text,
+            backgroundColor: colors.card,
+            padding: 10,
+            borderRadius: 8,
+            marginVertical: 10,
+          }}
           placeholder="Enter URL"
           value={urlInput}
           onChangeText={setUrlInput}

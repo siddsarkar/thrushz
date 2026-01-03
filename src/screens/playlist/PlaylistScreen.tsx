@@ -29,10 +29,18 @@ import { JiosaavnTrackInfoSheet } from '@/components/player/JiosaavnTrackInfoShe
 import { AddToPlaylistSheet } from '@/components/playlist/AddToPlaylistSheet';
 import { ListItem } from '@/components/ui/ListItem';
 import { db, LIKED_SONGS_PLAYLIST_ID } from '@/db';
-import { playlistsSongsTable, playlistsTable } from '@/db/schema';
+import {
+  downloadedSongsTable,
+  downloadsTable,
+  metadataTable,
+  playlistsSongsTable,
+  playlistsTable,
+  songsMetadataTable,
+} from '@/db/schema';
 import { usePlayerQueue } from '@/hooks/player/usePlayerQueue';
 import { useBottomSheetBack } from '@/hooks/useBottomSheetBack';
 import { useThemeColors } from '@/theme/hooks/useTheme';
+import { downloadManager } from '@/utils/download-manager';
 
 type Playlist = typeof playlistsTable.$inferSelect;
 
@@ -71,9 +79,11 @@ const HeaderHandle = memo(HeaderHandleComponent);
 function PlaylistDisplay({
   playlist,
   songIds,
+  downloadedSongIds,
 }: {
   playlist: Playlist;
   songIds: string[];
+  downloadedSongIds: string[];
 }) {
   const { addToQueue } = usePlayerQueue();
   const { dismissAll } = useBottomSheetModal();
@@ -115,6 +125,61 @@ function PlaylistDisplay({
 
   const onItemPress = useCallback(
     async (item: { id: string; title: string; image?: string }) => {
+      if (downloadedSongIds.includes(item.id)) {
+        try {
+          // find the metadata
+          const metadata = await db
+            .select({
+              id: metadataTable.id,
+              title: metadataTable.title,
+              artist: metadataTable.artist,
+              artwork: metadataTable.artwork,
+              duration: metadataTable.duration,
+              album: metadataTable.album,
+              year: metadataTable.year,
+            })
+            .from(songsMetadataTable)
+            .innerJoin(
+              metadataTable,
+              eq(songsMetadataTable.metadataId, metadataTable.id)
+            )
+            .where(eq(songsMetadataTable.songId, item.id));
+
+          if (metadata && metadata.length > 0) {
+            // find in song downloads
+            const downloadSong = await db
+              .select()
+              .from(downloadedSongsTable)
+              .where(eq(downloadedSongsTable.songId, item.id));
+
+            if (downloadSong && downloadSong.length > 0) {
+              // find the download
+              const download = await db
+                .select()
+                .from(downloadsTable)
+                .where(eq(downloadsTable.id, downloadSong[0].downloadId));
+
+              if (download && download.length > 0) {
+                console.log('download', download);
+                await TrackPlayer.reset();
+                TrackPlayer.add({
+                  url: download[0].uri,
+                  title: metadata[0].title,
+                  artist: metadata[0].artist,
+                  artwork: metadata[0].artwork,
+                  id: item.id,
+                  canFavorite: true,
+                });
+                TrackPlayer.play();
+              }
+            }
+          }
+        } catch (error) {
+          console.error('error', error);
+        }
+        return;
+      }
+
       const songIndex = songs?.findIndex((s) => s.id === item.id);
 
       await TrackPlayer.reset();
@@ -157,21 +222,22 @@ function PlaylistDisplay({
   const handleDownloadPress = useCallback(() => {
     if (!selectedTrackId) return;
 
-    let url =
-      createDownloadLinks(
-        songs?.find((s) => s.id === selectedTrackId)?.more_info
-          .encrypted_media_url || ''
-      )[0]?.url || null;
-    if (!url) return;
+    // let url =
+    //   createDownloadLinks(
+    //     songs?.find((s) => s.id === selectedTrackId)?.more_info
+    //       .encrypted_media_url || ''
+    //   )[0]?.url || null;
+    // if (!url) return;
+    downloadManager.downloadSong(selectedTrackId);
 
     trackInfoSheetRef.current?.dismiss();
-    setTimeout(() => {
-      router.push({
-        pathname: '/downloads',
-        params: { url },
-      });
-    }, 100);
-  }, [selectedTrackId, songs]);
+    // setTimeout(() => {
+    //   router.push({
+    //     pathname: '/downloads',
+    //     params: { url },
+    //   });
+    // }, 100);
+  }, [selectedTrackId]);
 
   const handleCreatePlaylistPress = useCallback(() => {
     dismissAll();
@@ -257,8 +323,10 @@ function PlaylistDisplay({
 
   const handleAddToPlaylistPress = useCallback(async () => {
     dismissAll();
-    addToPlaylistSheetRef.current?.present();
-    setIsAddToPlaylistSheetOpen(true);
+    setTimeout(() => {
+      addToPlaylistSheetRef.current?.present();
+      setIsAddToPlaylistSheetOpen(true);
+    }, 100);
   }, [dismissAll]);
 
   // renders
@@ -299,6 +367,7 @@ function PlaylistDisplay({
             isPlaying: activeSong?.id === song.id,
             description: `${song.more_info.album} &bull; ${song.more_info.artistMap?.primary_artists[0]?.name}`,
             duration: Number(song.more_info.duration || 0),
+            isDownloaded: downloadedSongIds.includes(song.id),
             ...song,
           })) || []
         }
@@ -406,6 +475,11 @@ export default function PlaylistScreen({ playlistId }: { playlistId: string }) {
     [playlistId]
   );
 
+  const { data: downloadedSongs } = useLiveQuery(
+    db.select().from(downloadedSongsTable),
+    []
+  );
+
   if (!playlist) {
     return <Text>Playlist not found</Text>;
   }
@@ -414,6 +488,7 @@ export default function PlaylistScreen({ playlistId }: { playlistId: string }) {
     <PlaylistDisplay
       playlist={playlist}
       songIds={songs?.map((song) => song.songId) || []}
+      downloadedSongIds={downloadedSongs?.map((song) => song.songId) || []}
     />
   );
 }

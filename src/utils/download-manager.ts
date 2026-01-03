@@ -1,8 +1,22 @@
+import { eq } from 'drizzle-orm';
+import { Directory, File, Paths } from 'expo-file-system';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
-import { Alert } from 'react-native';
+import { Alert, ToastAndroid } from 'react-native';
 import { BehaviorSubject } from 'rxjs';
 
+import { jiosaavnApi } from '@/api';
+import {
+  createDownloadLinks,
+  createImageLinks,
+} from '@/api/jiosaavn/utils/helpers';
+import { db } from '@/db';
+import {
+  downloadedSongsTable,
+  downloadsTable,
+  metadataTable,
+  songsMetadataTable,
+} from '@/db/schema';
 import { SAFManager } from '@/utils/saf-manager';
 
 export interface Download {
@@ -136,13 +150,7 @@ export class DownloadManager {
     this.downloads.next(resumables);
   }
 
-  async addDownload(urlInput: string) {
-    if (!this.saf.hasDirectoryAccess()) {
-      let uri = await this.saf.requestDirectoryAccess();
-      if (!uri) return;
-      await this.storage.setSafUri(uri);
-    }
-
+  async addDownload(urlInput: string, songId?: string) {
     let isUrlValid = false;
     let url = urlInput.trim();
 
@@ -203,6 +211,49 @@ export class DownloadManager {
         );
 
         await this.storage.removeDownloadState(id);
+
+        // Handle song differently
+        if (songId) {
+          let offlineSongsDirectory = new Directory(
+            Paths.cache,
+            'offline-songs'
+          );
+          if (!offlineSongsDirectory.exists) {
+            offlineSongsDirectory.create();
+          }
+
+          // move the newly downloaded file to the offline-songs directory
+          let songFile = new File(newDownload.fileUri);
+          songFile.move(offlineSongsDirectory);
+
+          const downloadDbEntry = await db
+            .insert(downloadsTable)
+            .values({
+              uri: songFile.uri,
+              type: songFile.type,
+              duration: 0,
+              size: newDownload.progress.totalBytesWritten,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            })
+            .returning({ id: downloadsTable.id });
+
+          if (downloadDbEntry) {
+            await db.insert(downloadedSongsTable).values({
+              songId: songId,
+              downloadId: downloadDbEntry[0].id,
+            });
+          }
+
+          return;
+        }
+
+        // generally donload to saf directory, if songId is not provided
+        if (!this.saf.hasDirectoryAccess()) {
+          let uri = await this.saf.requestDirectoryAccess();
+          if (!uri) return;
+          await this.storage.setSafUri(uri);
+        }
 
         let safUri = await this.saf.moveFileToDirectory(
           newDownload.fileUri,
@@ -328,6 +379,88 @@ export class DownloadManager {
       await FileSystem.deleteAsync(download.fileUri, { idempotent: true });
       this.downloads.next(this.downloads.getValue().filter((d) => d.id !== id));
     }
+  }
+
+  async downloadSong(songId: string) {
+    // check if the song is already downloaded
+    const downloadedSong = await db
+      .select()
+      .from(downloadedSongsTable)
+      .where(eq(downloadedSongsTable.songId, songId));
+    if (downloadedSong && downloadedSong.length > 0) {
+      ToastAndroid.show('Song already downloaded', ToastAndroid.SHORT);
+      return;
+    }
+    /**
+     * 1. Get song details from JioSaavn API
+     * 2. Save song metadata to database
+     * 3. Download song file
+     * 4. Save song file to cache/offline-songs directory
+     * 5. Update download state in database
+     */
+    const songDetails = await jiosaavnApi.getSongDetailsById(songId);
+    if (!songDetails) return;
+    const song = songDetails.songs[0];
+    if (!song) return;
+    const songUrl =
+      createDownloadLinks(song.more_info.encrypted_media_url || '')[0]?.url ||
+      '';
+    if (!songUrl) return;
+    const artworkUrl = createImageLinks(song.image || '')[0]?.url || '';
+    let artwork = song.image || '';
+    if (artworkUrl) {
+      // download the artwork
+      try {
+        const artworkDirectory = new Directory(Paths.cache, 'artwork-images');
+        if (!artworkDirectory.exists) {
+          artworkDirectory.create();
+        }
+        let artworkFileUri =
+          FileSystem.cacheDirectory + 'artwork-images/' + songId + '.jpg';
+        const artworkFile = await FileSystem.downloadAsync(
+          artworkUrl,
+          artworkFileUri
+        );
+        if (artworkFile) {
+          artwork = artworkFile.uri;
+          console.log('artwork downloaded', artwork);
+          console.log('artwork file uri', artworkFileUri);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    // check if the metadata already exists for the song
+    const songMetadata = await db
+      .select()
+      .from(songsMetadataTable)
+      .where(eq(songsMetadataTable.songId, songId));
+
+    if (songMetadata && songMetadata.length > 0) {
+      // TODO: update the metadata for the song
+    } else {
+      const metadata = await db
+        .insert(metadataTable)
+        .values({
+          title: song.title,
+          artist: song.more_info.artistMap?.primary_artists[0]?.name || '',
+          album: song.more_info.album || '',
+          year: song.more_info.release_date || '',
+          artwork: artwork,
+          duration: Number(song.more_info.duration || 0),
+        })
+        .returning();
+
+      if (!metadata) return;
+      await db.insert(songsMetadataTable).values({
+        songId: songId,
+        metadataId: metadata[0].id,
+      });
+    }
+
+    ToastAndroid.show('Download started', ToastAndroid.SHORT);
+    await this.addDownload(songUrl, songId);
   }
 }
 

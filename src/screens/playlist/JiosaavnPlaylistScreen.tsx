@@ -167,8 +167,10 @@ const PlaylistDisplay = ({
 
   const handleAddToPlaylistPress = useCallback(() => {
     dismissAll();
-    addToPlaylistSheetRef.current?.present();
-    setIsAddToPlaylistSheetOpen(true);
+    setTimeout(() => {
+      addToPlaylistSheetRef.current?.present();
+      setIsAddToPlaylistSheetOpen(true);
+    }, 100);
   }, [dismissAll]);
 
   const handleCreatePlaylistPress = useCallback(() => {

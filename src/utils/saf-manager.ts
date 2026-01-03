@@ -107,7 +107,6 @@ export class SAFManager {
       const files = await StorageAccessFramework.readDirectoryAsync(
         this.directoryUri
       );
-      console.log('Files in directory:', files);
       return files;
     } catch (error) {
       console.error('Error reading directory:', error);

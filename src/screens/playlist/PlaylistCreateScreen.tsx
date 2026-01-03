@@ -6,12 +6,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession } from '@/auth/context/AuthSessionProvider';
 import { db } from '@/db';
 import { playlistsTable } from '@/db/schema';
-import { useThemeColors } from '@/theme/hooks/useTheme';
+import { useThemeColors, useThemeTypography } from '@/theme/hooks/useTheme';
 import { uuidv4 } from '@/utils/uuid';
 
 export default function PlaylistCreateScreen() {
   const { user } = useSession();
   const colors = useThemeColors();
+  const typography = useThemeTypography();
   const insets = useSafeAreaInsets();
 
   const [playlistName, setPlaylistName] = useState('');
@@ -40,13 +41,23 @@ export default function PlaylistCreateScreen() {
   }, [playlistName, user?.id]);
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top, paddingHorizontal: 16 }}>
-      <Text style={{ color: colors.text }}>Create Playlist</Text>
+    <View
+      style={{ flex: 1, paddingTop: insets.top + 16, paddingHorizontal: 16 }}
+    >
+      <Text style={[typography.h6, { color: colors.text }]}>
+        Create Playlist
+      </Text>
       <View style={{ marginVertical: 16 }}>
         <TextInput
           placeholder="Enter playlist name"
           value={playlistName}
           onChangeText={setPlaylistName}
+          style={{
+            color: colors.text,
+            backgroundColor: colors.card,
+            padding: 10,
+            borderRadius: 8,
+          }}
         />
       </View>
       <Button title="Create" onPress={handleCreatePlaylist} />

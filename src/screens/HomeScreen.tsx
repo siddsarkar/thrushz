@@ -80,7 +80,7 @@ const PlaylistItemDisplay = forwardRef<View, PlaylistItemDisplayProps>(
         <Image
           source={{ uri: image }}
           placeholder={require('@/assets/images/app-icon.png')}
-          fadeDuration={500}
+          transition={500}
           style={{
             width: '100%',
             aspectRatio: 1,

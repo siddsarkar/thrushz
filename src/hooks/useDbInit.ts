@@ -6,7 +6,7 @@ import { playlistsTable } from '@/db/schema';
 import migrations from '@/drizzle/migrations';
 
 export function useDbInit() {
-  const { success } = useMigrations(db, migrations);
+  const { success, error } = useMigrations(db, migrations);
 
   const [isReady, setIsReady] = useState(false);
 
@@ -38,5 +38,5 @@ export function useDbInit() {
     };
   }, [success]);
 
-  return isReady;
+  return { isReady, error };
 }
